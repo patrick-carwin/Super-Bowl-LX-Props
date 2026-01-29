@@ -3,83 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Bowl Prop Leaderboard</title>
+    <title>Super Bowl Prop Matrix</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .header-container { background-color: #013369; color: white; padding: 20px; text-align: center; }
-        .refresh-btn { margin-top: 10px; }
-        .leaderboard-card { margin-top: -20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .rank-1 { background-color: #FFD700; font-weight: bold; } /* Gold */
-        .rank-2 { background-color: #C0C0C0; font-weight: bold; } /* Silver */
-        .rank-3 { background-color: #CD7F32; font-weight: bold; } /* Bronze */
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Hero Section */
+        .header-container { 
+            background: linear-gradient(135deg, #013369 0%, #d50a0a 100%); /* Patriots/NFL colors style */
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Table Styling */
+        .table-container {
+            overflow-x: auto; /* Allows side scrolling */
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-top: -30px;
+            position: relative;
+        }
+
+        table { white-space: nowrap; font-size: 0.9rem; }
+        
+        /* Sticky Columns (Name & Score) */
+        .sticky-col {
+            position: sticky;
+            background-color: white;
+            z-index: 2;
+            border-right: 2px solid #dee2e6;
+        }
+        .col-rank { left: 0; min-width: 40px; }
+        .col-name { left: 40px; min-width: 150px; }
+        .col-score { left: 190px; min-width: 80px; font-weight: bold; }
+
+        /* Color Coding */
+        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; border: 1px solid #badbcc; } /* Green */
+        .incorrect-cell { background-color: #f8d7da !important; color: #842029; border: 1px solid #f5c2c7; } /* Red */
+        .key-row { background-color: #212529 !important; color: #ffc107; font-weight: bold; } /* Dark row for Answer Key */
+
+        .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
     </style>
 </head>
 <body>
 
     <div class="header-container">
-        <h1>🏆 Prop Bet Leaderboard</h1>
-        <p>Live Updates during the Big Game</p>
-        <button onclick="loadData()" class="btn btn-light btn-sm refresh-btn">🔄 Refresh Scores</button>
+        <h1><i class="fas fa-football-ball"></i> 11th Annual Super Bowl Prop Bet Challenge</h1>
+        <p class="mb-2">Live Prop Bet Results</p>
+        <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm"><i class="fas fa-sync-alt"></i> Refresh Board</button>
     </div>
 
-    <div class="container pb-5">
-        <div class="card leaderboard-card">
-            <div class="card-body p-0">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Player</th>
-                            <th scope="col">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                        <tr><td colspan="3" class="text-center p-3">Loading scores...</td></tr>
-                    </tbody>
+    <div class="container-fluid px-4 pb-5">
+        <div class="table-container">
+            <table class="table table-hover mb-0" id="prop-table">
                 </table>
-            </div>
+            <div id="loading" class="loading-msg">Loading data from the field...</div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <script>
-        // PASTE YOUR GOOGLE SHEET CSV LINK INSIDE THE QUOTES BELOW
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRL9xTmrB0BqNlEKUZtqaQjzgT2Meh9VQ-kWB11pfr70bb_Wm_Mpf6u36_a7RvPIBp4__CKhuNPUYGI/pub?gid=1666236127&single=true&output=csv";
+        // --- PASTE YOUR NEW WEB_MATRIX CSV LINK HERE ---
+        const sheetUrl = "PASTE_LINK_HERE"; 
 
         function loadData() {
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("prop-table").innerHTML = "";
+
             Papa.parse(sheetUrl, {
                 download: true,
-                header: true,
+                header: false, // We use false so we can handle headers manually
                 complete: function(results) {
-                    const rows = results.data;
-                    const tableBody = document.getElementById("leaderboard-body");
-                    tableBody.innerHTML = ""; // Clear current list
-
-                    rows.forEach((row, index) => {
-                        // Skip empty rows
-                        if (!row.Player || !row.Score) return;
-
-                        let tr = document.createElement("tr");
-                        
-                        // Add highlighting for Top 3
-                        if (index === 0) tr.classList.add("rank-1");
-                        if (index === 1) tr.classList.add("rank-2");
-                        if (index === 2) tr.classList.add("rank-3");
-
-                        tr.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${row.Player}</td>
-                            <td>${row.Score}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
+                    renderTable(results.data);
                 }
             });
         }
 
-        // Load data immediately when page opens
+        function renderTable(data) {
+            const table = document.getElementById("prop-table");
+            let html = "";
+            
+            // Row 0 = Headers (Name, Score, Q1...)
+            // Row 1 = The Answer Key (Values to compare against)
+            // Row 2+ = The Players
+            
+            const headers = data[0];
+            const keyRow = data[1]; 
+            const players = data.slice(2); // All rows after the key
+
+            // 1. Build The Header Row
+            html += `<thead class="table-dark"><tr>`;
+            html += `<th class="sticky-col col-rank">#</th>`; // Rank Column
+            headers.forEach((h, index) => {
+                let stickyClass = "";
+                if(index === 0) stickyClass = "sticky-col col-name"; // Name
+                if(index === 1) stickyClass = "sticky-col col-score"; // Score
+                html += `<th class="${stickyClass}">${h}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            // 2. Build the "Answer Key" Row (Display it at top)
+            html += `<tr class="key-row">`;
+            html += `<td class="sticky-col col-rank key-row">-</td>`;
+            keyRow.forEach((cell, index) => {
+                let stickyClass = "";
+                if(index === 0) stickyClass = "sticky-col col-name key-row";
+                if(index === 1) stickyClass = "sticky-col col-score key-row";
+                
+                // If the key cell is empty, show a placeholder
+                html += `<td class="${stickyClass}">${cell ? cell : "-"}</td>`;
+            });
+            html += `</tr>`;
+
+            // 3. Build Player Rows
+            players.forEach((row, rank) => {
+                if(!row[0]) return; // Skip empty rows
+
+                html += `<tr>`;
+                html += `<td class="sticky-col col-rank fw-bold">${rank + 1}</td>`;
+
+                row.forEach((cell, index) => {
+                    let cssClass = "";
+                    let content = cell;
+
+                    // Sticky classes for Name and Score
+                    if(index === 0) cssClass = "sticky-col col-name";
+                    if(index === 1) cssClass = "sticky-col col-score";
+
+                    // LOGIC: Highlighting Answers (Columns 2 and greater)
+                    // We compare the User's cell against keyRow[index]
+                    if (index >= 2) {
+                        const correctAns = keyRow[index];
+                        
+                        // Only color if there is actually a correct answer set in the key
+                        if (correctAns && correctAns.trim() !== "") {
+                            if (cell === correctAns) {
+                                cssClass += " correct-cell"; // Green
+                                content += ` <i class="fas fa-check small text-success"></i>`;
+                            } else {
+                                cssClass += " incorrect-cell"; // Red
+                            }
+                        }
+                    }
+
+                    html += `<td class="${cssClass}">${content}</td>`;
+                });
+                html += `</tr>`;
+            });
+
+            html += `</tbody>`;
+            table.innerHTML = html;
+            document.getElementById("loading").style.display = "none";
+        }
+
         window.onload = loadData;
     </script>
 
