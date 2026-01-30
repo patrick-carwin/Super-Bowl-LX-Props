@@ -294,12 +294,15 @@
                 // 2. NAME & STREAK LOGIC
                 let playerName = row[0]; // Name is index 0
                 
-                // --- STREAK CALCULATION ---
+               // --- STREAK CALCULATION ---
                 let currentStreak = 0;
-                // Loop backwards from last question to find consecutive wins
-                for (let i = row.length - 1; i >= 2; i--) {
+                
+                // FIXED: We start at (row.length - 2) to SKIP the Tie Breaker Column
+                // This ensures the math guess doesn't break the streak of correct props
+                for (let i = row.length - 2; i >= 2; i--) {
                     const playerAnswer = row[i];
                     const correctAnswer = keyRow[i];
+                    
                     // Only count if this question has been graded in the key
                     if (correctAnswer && correctAnswer !== "") {
                         if (playerAnswer === correctAnswer) {
@@ -309,6 +312,7 @@
                         }
                     }
                 }
+
                 // If streak is 3 or more, add Fire Emoji
                 if (currentStreak >= 3) {
                     playerName += ` <span class="badge bg-danger ms-1">🔥 ${currentStreak}</span>`;
@@ -369,3 +373,4 @@
     </script>
 </body>
 </html>
+
