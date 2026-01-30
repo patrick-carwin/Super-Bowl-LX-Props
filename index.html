@@ -1,8 +1,190 @@
-<div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>11th Annual Prop Bet Challenge Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Prevent bounce scroll on mobile */
+        html, body { 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #f4f6f9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+
+        /* --- 1. FLEXIBLE HEADER --- */
+        .header-container { 
+            background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%);
+            color: white; 
+            padding: 10px 15px; 
+            text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 100;
+            position: relative;
+            flex-shrink: 0; 
+        }
+        
+        .header-container h2 { font-size: 1.4rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        /* PULSE ANIMATION */
+        .live-indicator {
+            display: inline-block;
+            width: 10px; height: 10px;
+            background-color: #ff3b3b;
+            border-radius: 50%;
+            box-shadow: 0 0 0 rgba(255, 59, 59, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); }
+        }
+
+        /* --- 2. SCROLLABLE WINDOW --- */
+        .main-content {
+            flex-grow: 1; 
+            position: relative;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-container {
+            overflow: auto; 
+            background: white;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            height: 100%; 
+        }
+
+        table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
+        
+        /* --- STICKY LOGIC --- */
+        thead { position: sticky; top: 0; z-index: 50; }
+        .sticky-col { position: sticky; z-index: 20; border-right: 1px solid #dee2e6; }
+        thead .sticky-col { z-index: 60 !important; } 
+
+        /* --- COLUMN WIDTHS --- */
+        .col-rank { left: 0; min-width: 50px; text-align: center; background-color: #f8f9fa; }
+        .col-name { left: 50px; min-width: 180px; text-align: left !important; padding-left: 15px; background-color: #fff; }
+        .col-score { left: 230px; min-width: 80px; font-weight: bold; text-align: center; background-color: #fff; }
+
+        /* --- COLORS & STYLES --- */
+        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
+        .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
+        .table-warning { background-color: #fff3cd !important; }
+        
+        /* Rank 1 Crown Style */
+        .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; }
+        
+        /* Last Place Ice Style */
+        .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
+
+        /* HEADER STYLING */
+        thead tr:first-child th { 
+            background-color: #212529; color: white; vertical-align: bottom; text-align: center;
+            padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444;
+        }
+        .key-row td { 
+            background-color: #212529 !important; color: #ffc107 !important; font-weight: bold;
+            border-bottom: 4px solid #ffd700; text-align: center;
+        }
+        /* Sticky Fixes */
+        thead tr:first-child .sticky-col { background-color: #212529; color: white; }
+        thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
+
+        tbody td { text-align: center; vertical-align: middle; padding: 8px; }
+        .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 768px) {
+            table { font-size: 0.8rem; }
+            .header-container h2 { font-size: 1.1rem; }
+            .col-rank { min-width: 35px; } 
+            .col-name { left: 35px; min-width: 120px; padding-left: 8px; } 
+            .col-score { left: 155px; min-width: 50px; } 
+            .badge { font-size: 0.6em !important; white-space: normal; }
+            #searchInput::placeholder { color: transparent; }
+            #searchInput { width: 120px !important; }
+        }
+
+        /* --- LANDSCAPE MODE OPTIMIZATION --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; }
+            .progress-container, #lastUpdated, .rules-link { display: none !important; }
+            .header-container h2 { font-size: 1rem; margin: 0; text-align: left; }
+            .controls-container { margin-top: 0 !important; }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+
+    <div class="header-container">
+        <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge Tracker</h2>
+        
+        <div class="progress-container progress bg-white bg-opacity-25 mt-2 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
+            <div id="gameProgress" class="progress-bar bg-warning" role="progressbar" style="width: 0%; border-radius: 10px;"></div>
+        </div>
+
+        <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.7rem; opacity: 0.8;">Waiting for signal...</p>
+
+        <div class="controls-container d-flex justify-content-center gap-2 mt-2">
+            <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <input type="text" id="searchInput" onkeyup="filterTable()" 
+                   class="form-control form-control-sm shadow-sm" 
+                   style="max-width: 200px;" placeholder="Find Name...">
+        </div>
+        
+        <div class="rules-link text-center mt-2">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#rulesModal" class="text-white-50 text-decoration-none" style="font-size: 0.75rem;">
+                <i class="fas fa-info-circle"></i> House Rules
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="table-container">
+            <table class="table table-hover mb-0" id="prop-table">
+                </table>
+            <div id="loading" class="loading-msg">Loading data from the field...</div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="rulesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered p-3">
+          <div class="modal-content shadow-lg">
+            <div class="modal-header bg-dark text-white">
+              <h5 class="modal-title fs-6"><i class="fas fa-gavel text-warning"></i> Official Rules</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark" style="white-space: normal; font-size: 0.9rem;">
+              <h6 class="fw-bold">1. Grading</h6>
+              <p class="small text-muted mb-2">All results are graded based on the live broadcast verdict. Admin decision is final.</p>
+              <h6 class="fw-bold">2. Tie Breaker</h6>
+              <p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over.</p>
+              <h6 class="fw-bold">3. Refreshing</h6>
+              <p class="small text-muted m-0">Scores update roughly 3-5 minutes after the admin keys them in.</p>
+            </div>
+            <div class="modal-footer p-1">
+              <button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
             <div class="modal-content shadow-lg" style="height: 80vh;">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5>
+                    <h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Smack Talk</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0 bg-light">
@@ -33,7 +215,6 @@
     
     <script>
         // --- 1. INITIALIZE TOOLTIPS ---
-        // This tiny code block makes the hover text work
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
