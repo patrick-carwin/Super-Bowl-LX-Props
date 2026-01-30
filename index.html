@@ -227,7 +227,16 @@
                 if(!row[0]) return; 
 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
-                html += `<td class="sticky-col col-rank fw-bold">${rank + 1}</td>`;
+                // If Rank #1, add a Crown and Gold Background
+let rankContent = rank + 1;
+let rankClass = "sticky-col col-rank fw-bold";
+
+if (rank === 0) { // 0 is the first index (Rank 1)
+    rankContent = `<i class="fas fa-crown text-warning"></i>`; // Crown Icon
+    rankClass += " bg-dark text-white border-bottom-0"; // Dark background to make Gold pop
+}
+
+html += `<td class="${rankClass}">${rankContent}</td>`;
 
                 row.forEach((cell, index) => {
                     let cssClass = "";
@@ -283,4 +292,5 @@
     </script>
 </body>
 </html>
+
 
