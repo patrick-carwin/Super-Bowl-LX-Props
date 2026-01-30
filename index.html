@@ -54,8 +54,13 @@
         .table-container { overflow: auto; background: white; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); height: 100%; }
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
-        /* ZEBRA STRIPING */
-        tbody tr:nth-of-type(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        /* --- ZEBRA STRIPING FIX --- */
+        /* We use a SOLID color (#f2f4f6) instead of transparent rgba */
+        /* This ensures the text behind sticky columns is actually hidden */
+        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
+        
+        /* Force Sticky Columns on Even Rows to use the same Solid Color */
+        tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
 
         /* --- STICKY LOGIC --- */
         thead { position: sticky; top: 0; z-index: 50; }
@@ -63,16 +68,18 @@
         thead .sticky-col { z-index: 60 !important; } 
 
         /* --- COLUMN WIDTHS --- */
-        /* Adjusted widths to fit Prize Column */
         .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; }
         .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; }
-        /* Prize col is NOT sticky, but sits right after sticky cols */
         .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
 
         /* --- STYLES --- */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
+        
+        /* Highlight Row Style */
         .table-warning td { background-color: #fff3cd !important; }
+        .table-warning .sticky-col { background-color: #fff3cd !important; } /* Ensure sticky cols get highlighted too */
+
         .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; }
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
