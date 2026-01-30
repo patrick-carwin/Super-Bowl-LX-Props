@@ -61,6 +61,18 @@
         
         /* Keep Name aligned Left for readability */
         .col-name { text-align: left !important; }
+
+        /* Center ALL table data cells (Rank, Scores, Answers) */
+tbody td {
+    text-align: center;
+    vertical-align: middle; /* Ensures text floats in the middle of the row height */
+}
+
+/* BUT... keep the Name Column Left-Aligned (easier to read) */
+.col-name {
+    text-align: left !important;
+    padding-left: 15px; /* Adds a tiny bit of breathing room from the edge */
+}
     </style>
 </head>
 <body>
@@ -187,5 +199,6 @@
 
 </body>
 </html>
+
 
 
