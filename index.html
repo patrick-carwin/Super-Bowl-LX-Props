@@ -44,7 +44,12 @@
         /* Color Coding */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; border: 1px solid #badbcc; } /* Green */
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; border: 1px solid #f5c2c7; } /* Red */
-        .key-row { background-color: #212529 !important; color: #ffc107; font-weight: bold; } /* Dark row for Answer Key */
+        /* Specific style for the Answer Key Row */
+.key-row, .key-row td, .sticky-col.key-row { 
+    background-color: #212529 !important; 
+    color: #ffc107 !important; /* Forces Gold Text */
+    font-weight: bold;
+}
 
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
     </style>
