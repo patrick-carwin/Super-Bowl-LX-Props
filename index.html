@@ -34,7 +34,12 @@
             padding: 5px 10px; margin-top: 5px; margin-bottom: 5px;
             font-size: 0.85rem;
         }
-        .payout-item { display: flex; flex-direction: column; line-height: 1.1; }
+        .payout-item { display: flex; flex-direction: column; line-height: 1.1; position: relative; }
+        /* Add explicit dividers for desktop */
+        .payout-item:not(:last-child):after {
+            content: ""; position: absolute; right: -8px; top: 10%; height: 80%; 
+            border-right: 1px solid rgba(255,255,255,0.3);
+        }
         .payout-label { font-size: 0.7em; text-transform: uppercase; opacity: 0.8; }
         .payout-val { font-weight: bold; color: #ffd700; }
 
@@ -55,11 +60,7 @@
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
         /* --- ZEBRA STRIPING FIX --- */
-        /* We use a SOLID color (#f2f4f6) instead of transparent rgba */
-        /* This ensures the text behind sticky columns is actually hidden */
         tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
-        
-        /* Force Sticky Columns on Even Rows to use the same Solid Color */
         tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
 
         /* --- STICKY LOGIC --- */
@@ -76,9 +77,8 @@
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         
-        /* Highlight Row Style */
         .table-warning td { background-color: #fff3cd !important; }
-        .table-warning .sticky-col { background-color: #fff3cd !important; } /* Ensure sticky cols get highlighted too */
+        .table-warning .sticky-col { background-color: #fff3cd !important; }
 
         .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; }
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
@@ -99,7 +99,7 @@
         tbody td { text-align: center; vertical-align: middle; padding: 8px; }
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- MOBILE --- */
+        /* --- MOBILE OPTIMIZATION --- */
         @media (max-width: 768px) {
             table { font-size: 0.8rem; }
             .header-container h2 { font-size: 1.1rem; }
@@ -109,14 +109,19 @@
             .badge { font-size: 0.6em !important; white-space: normal; }
             #searchInput::placeholder { color: transparent; }
             #searchInput { width: 100px !important; }
-            /* Hide 2nd/3rd place payouts on tiny screens if needed, keeping Total/1st */
-            .payout-item:nth-child(3), .payout-item:nth-child(4) { display: none; }
+            
+            /* --- PAYOUT BAR FIX --- */
+            /* Show all 4 items, but shrink gap and text to fit */
+            .payout-board { gap: 8px; padding: 5px; }
+            .payout-item:not(:last-child):after { right: -4px; } /* Move divider closer */
+            .payout-label { font-size: 0.6em; }
+            .payout-val { font-size: 0.85em; }
         }
 
         /* --- LANDSCAPE --- */
         @media (max-height: 500px) and (orientation: landscape) {
             .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; }
-            .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } /* Hide payout in landscape to save space */
+            .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } 
             .header-container h2 { font-size: 1rem; margin: 0; text-align: left; }
             .controls-container { margin-top: 0 !important; }
         }
@@ -128,15 +133,15 @@
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge</h2>
         
         <div class="payout-board">
-            <div class="payout-item border-end pe-3">
+            <div class="payout-item">
                 <span class="payout-label">Total Pot</span>
                 <span class="payout-val" id="potTotal">$0</span>
             </div>
-            <div class="payout-item border-end pe-3">
+            <div class="payout-item">
                 <span class="payout-label">1st (60%)</span>
                 <span class="payout-val" id="pot1st">$0</span>
             </div>
-            <div class="payout-item border-end pe-3">
+            <div class="payout-item">
                 <span class="payout-label">2nd (20%)</span>
                 <span class="payout-val" id="pot2nd">$0</span>
             </div>
