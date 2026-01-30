@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; /* Prevent double scrollbars */ }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         
         /* Hero Section */
         .header-container { 
@@ -16,61 +16,80 @@
             padding: 15px 20px; 
             text-align: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            height: 140px; /* Fixed height for header area */
+            height: 140px; 
+            position: relative; 
+            z-index: 100;
         }
         
-        /* SCROLLABLE TABLE CONTAINER (The Magic Window) */
+        /* Main Table Window */
         .table-container {
-            height: calc(100vh - 160px); /* Fill the rest of the screen */
-            overflow: auto; /* Enable Scrollbars */
+            height: calc(100vh - 160px); 
+            overflow: auto; 
             background: white;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             margin-top: -20px;
-            position: relative;
             margin-left: 10px;
             margin-right: 10px;
+            position: relative;
         }
 
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
-        /* --- STICKY HEADER LOGIC (Top Freeze) --- */
+        /* --- STICKY TOP HEADER (The Header Block) --- */
         thead {
             position: sticky;
             top: 0;
-            z-index: 10; /* sits above the body data */
+            z-index: 50; /* Keeps the whole header block on top of the body */
         }
 
-        /* --- STICKY COLUMN LOGIC (Left Freeze) --- */
+        /* --- STICKY LEFT COLUMNS (Rank, Name, Score) --- */
         .sticky-col {
             position: sticky;
-            z-index: 5; /* sits above normal data */
+            z-index: 20; /* Sits above normal body cells */
             border-right: 2px solid #dee2e6;
         }
         
-        /* The "Super Sticky" Corners (Top Left) need highest Z-Index */
+        /* The "Super Sticky" Intersection (Top-Left Corners) */
+        /* These need to be higher than everything else */
         thead .sticky-col {
-            z-index: 20 !important; /* Highest priority: Sits on top of everything */
+            z-index: 60 !important; 
         }
 
-        .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; }
-        .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 15px; background-color: #fff; }
-        .col-score { left: 190px; min-width: 80px; font-weight: bold; text-align: center; background-color: #fff; }
+        /* Column Widths & Positions */
+        .col-rank { left: 0; min-width: 50px; text-align: center; background-color: #f8f9fa; }
+        .col-name { left: 50px; min-width: 180px; text-align: left !important; padding-left: 15px; background-color: #fff; }
+        .col-score { left: 230px; min-width: 80px; font-weight: bold; text-align: center; background-color: #fff; }
 
-        /* Color Coding */
-        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; border: 1px solid #badbcc; } 
-        .incorrect-cell { background-color: #f8d7da !important; color: #842029; border: 1px solid #f5c2c7; }
+        /* COLORS */
+        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
+        .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         
-        /* Answer Key Styling */
-        .key-row td, .key-row th { 
+        /* HEADER STYLING */
+        /* Row 1: Questions */
+        thead tr:first-child th { 
+            background-color: #212529; 
+            color: white; 
+            vertical-align: bottom; 
+            text-align: center;
+            border-bottom: 1px solid #444;
+        }
+        
+        /* Row 2: Answer Key */
+        .key-row td { 
             background-color: #212529 !important; 
-            color: #ffc107 !important; 
+            color: #ffc107 !important; /* Gold */
             font-weight: bold;
-            border-bottom: 2px solid #ffd700;
+            border-bottom: 4px solid #ffd700; /* Gold Line Separator */
+            text-align: center;
         }
 
-        /* Header Text Alignment */
-        thead th { vertical-align: bottom !important; text-align: center; background-color: #212529; color: white; }
+        /* Fix for Sticky Backgrounds in Header */
+        /* We must explicitly color the sticky headers or they become transparent */
+        thead tr:first-child .sticky-col { background-color: #212529; color: white; }
+        thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
+
+        /* Body Alignment */
         tbody td { text-align: center; vertical-align: middle; }
         .table-warning { background-color: #fff3cd !important; }
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
@@ -122,14 +141,16 @@
             
             if (!data || data.length < 2) return;
 
-            const headers = data[0];
-            const keyRow = data[1]; 
+            const headers = data[0]; // Row 1 of CSV
+            const keyRow = data[1];  // Row 2 of CSV
             const players = data.slice(2); 
 
-            // 1. CALCULATE CROWD STATS
+            // --- CROWD STATS LOGIC ---
             let stats = [];
             headers.forEach((h, colIndex) => {
-                if(colIndex < 2 || !h) { stats.push(null); return; }
+                // Skip Name (0) and Score (1) columns
+                if(colIndex < 2) { stats.push(null); return; }
+                
                 const correctAns = keyRow[colIndex];
                 if(!correctAns || correctAns === "") { stats.push(null); return; }
 
@@ -144,16 +165,21 @@
                 stats.push(percent + "% Correct");
             });
 
-            // --- START BUILDING THEAD (Now includes Headers AND Key Row) ---
+            // --- BUILD THEAD ---
             html += `<thead>`;
             
             // ROW 1: HEADERS
             html += `<tr>`;
+            
+            // Manual Rank Header (Not in CSV)
+            html += `<th class="sticky-col col-rank">#</th>`; 
+
             headers.forEach((h, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-rank"; 
-                if(index === 1) stickyClass = "sticky-col col-name"; 
-                if(index === 2) stickyClass = "sticky-col col-score";
+                // CSV Index 0 = Name (HTML Col 2) -> Needs .col-name
+                if(index === 0) stickyClass = "sticky-col col-name"; 
+                // CSV Index 1 = Score (HTML Col 3) -> Needs .col-score
+                if(index === 1) stickyClass = "sticky-col col-score";
                 
                 let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
                 
@@ -165,33 +191,36 @@
             });
             html += `</tr>`;
 
-            // ROW 2: ANSWER KEY (Moved inside THEAD so it freezes too!)
+            // ROW 2: ANSWER KEY
             html += `<tr class="key-row">`;
+            // Manual Rank Key Cell
+            html += `<td class="sticky-col col-rank">-</td>`; 
+            
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-rank key-row";
-                if(index === 1) stickyClass = "sticky-col col-name key-row";
-                if(index === 2) stickyClass = "sticky-col col-score key-row";
+                if(index === 0) stickyClass = "sticky-col col-name";
+                if(index === 1) stickyClass = "sticky-col col-score";
                 html += `<td class="${stickyClass}">${cell ? cell : "-"}</td>`;
             });
-            html += `</tr>`;
-            
-            html += `</thead><tbody>`; // Close Head, Open Body
+            html += `</tr></thead><tbody>`;
 
-            // --- BUILD PLAYER ROWS ---
+            // --- BUILD BODY ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
 
-                html += `<tr onclick="highlightRow(this)" class="player-row">`;
+                html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
+                
+                // Manual Rank Cell
+                html += `<td class="sticky-col col-rank fw-bold">${rank + 1}</td>`;
+
                 row.forEach((cell, index) => {
                     let cssClass = "";
                     let content = cell ? cell : "";
 
-                    if(index === 0) cssClass = "sticky-col col-rank";
-                    if(index === 1) cssClass = "sticky-col col-name";
-                    if(index === 2) cssClass = "sticky-col col-score";
+                    if(index === 0) cssClass = "sticky-col col-name";
+                    if(index === 1) cssClass = "sticky-col col-score";
 
-                    if (index >= 3) { // Note: Index 3 is where answers start now
+                    if (index >= 2) { // Questions start at CSV index 2
                         const correctAns = keyRow[index];
                         if (correctAns && correctAns.trim() !== "") {
                             if (content === correctAns) {
@@ -212,12 +241,12 @@
             document.getElementById("loading").style.display = "none";
         }
 
-        // Search & Highlight Logic
+        // Search Logic
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
             const tr = document.getElementById("prop-table").getElementsByTagName("tr");
-            for (let i = 2; i < tr.length; i++) { // Skip first 2 rows (Head/Key)
+            for (let i = 2; i < tr.length; i++) { 
                 let td = tr[i].querySelector(".col-name");
                 if (td) {
                     let txtValue = td.textContent || td.innerText;
@@ -226,13 +255,20 @@
             }
         }
 
-        function highlightRow(row) {
-            document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning"));
-            row.classList.add("table-warning");
+        // Updated Toggle Highlight Logic
+        function toggleHighlight(row) {
+            // Check if THIS row is already highlighted
+            if (row.classList.contains("table-warning")) {
+                row.classList.remove("table-warning"); // Turn it off
+            } else {
+                // Turn off everyone else
+                document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning"));
+                // Turn this one on
+                row.classList.add("table-warning");
+            }
         }
 
         window.onload = loadData;
     </script>
 </body>
 </html>
-
