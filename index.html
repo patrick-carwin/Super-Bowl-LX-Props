@@ -15,29 +15,44 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         }
 
-        /* --- 1. FLEXIBLE HEADER (Fixes Cut-off) --- */
+        /* --- 1. FLEXIBLE HEADER --- */
         .header-container { 
             background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%);
             color: white; 
             padding: 10px 15px; 
             text-align: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            /* Removed fixed height so it grows with content */
             display: flex;
             flex-direction: column;
             justify-content: center;
             z-index: 100;
             position: relative;
-            flex-shrink: 0; /* Prevents header from shrinking too small */
+            flex-shrink: 0; 
         }
         
-        .header-container h2 { font-size: 1.5rem; margin-bottom: 5px; }
+        .header-container h2 { font-size: 1.5rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* --- 2. SCROLLABLE WINDOW (Fills remaining space) --- */
+        /* --- NEW: LIVE PULSE ANIMATION --- */
+        .live-indicator {
+            display: inline-block;
+            width: 10px; height: 10px;
+            background-color: #ff3b3b; /* Bright Red */
+            border-radius: 50%;
+            box-shadow: 0 0 0 rgba(255, 59, 59, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); }
+        }
+
+        /* --- 2. SCROLLABLE WINDOW --- */
         .main-content {
-            flex-grow: 1; /* Fills all vertical space left by header */
+            flex-grow: 1; 
             position: relative;
-            overflow: hidden; /* Contains the scrollable table */
+            overflow: hidden; 
             display: flex;
             flex-direction: column;
         }
@@ -46,7 +61,7 @@
             overflow: auto; 
             background: white;
             box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-            height: 100%; /* Fill the main-content area */
+            height: 100%; 
         }
 
         table { 
@@ -59,18 +74,25 @@
         /* --- STICKY LOGIC --- */
         thead { position: sticky; top: 0; z-index: 50; }
         .sticky-col { position: sticky; z-index: 20; border-right: 1px solid #dee2e6; }
-        thead .sticky-col { z-index: 60 !important; } /* Top-Left Corners sit on top */
+        thead .sticky-col { z-index: 60 !important; } 
 
-        /* --- DESKTOP COLUMN WIDTHS --- */
+        /* --- COLUMN WIDTHS --- */
         .col-rank { left: 0; min-width: 50px; text-align: center; background-color: #f8f9fa; }
         .col-name { left: 50px; min-width: 180px; text-align: left !important; padding-left: 15px; background-color: #fff; }
         .col-score { left: 230px; min-width: 80px; font-weight: bold; text-align: center; background-color: #fff; }
 
-        /* COLORS */
+        /* --- COLORS & STYLES --- */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         .table-warning { background-color: #fff3cd !important; }
         
+        /* NEW: Rank 1 Crown Style */
+        .rank-1-cell { 
+            background-color: #212529 !important; 
+            color: #ffd700 !important; 
+            border-right: 1px solid #444; 
+        }
+
         /* HEADER STYLING */
         thead tr:first-child th { 
             background-color: #212529; 
@@ -97,46 +119,32 @@
         tbody td { text-align: center; vertical-align: middle; padding: 8px; }
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- MOBILE OPTIMIZATION (The Magic Part) --- */
+        /* --- MOBILE OPTIMIZATION --- */
         @media (max-width: 768px) {
-            /* Shrink Font */
             table { font-size: 0.8rem; }
             .header-container h2 { font-size: 1.2rem; }
             
             /* Tighten Columns */
-            .col-rank { min-width: 35px; } /* Shrink Rank */
-            .col-name { left: 35px; min-width: 120px; padding-left: 8px; } /* Shrink Name */
-            .col-score { left: 155px; min-width: 50px; } /* Shrink Score */
+            .col-rank { min-width: 35px; } 
+            .col-name { left: 35px; min-width: 120px; padding-left: 8px; } 
+            .col-score { left: 155px; min-width: 50px; } 
             
             /* Adjust Badges */
-            .badge { font-size: 0.6em !important; }
+            .badge { font-size: 0.6em !important; white-space: normal; }
             
-            /* Hide the "Find my name" placeholder text to save space */
+            /* Hide placeholder text */
             #searchInput::placeholder { color: transparent; }
             #searchInput { width: 120px !important; }
         }
-        /* The Pulsing Red Dot */
-.live-indicator {
-    display: inline-block;
-    width: 10px; height: 10px;
-    background-color: #ff0000;
-    border-radius: 50%;
-    margin-right: 5px;
-    box-shadow: 0 0 0 rgba(255, 0, 0, 0.7);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
-}
     </style>
 </head>
 <body class="d-flex flex-column">
 
     <div class="header-container">
-        <h2 class="m-0"><i class="fas fa-football-ball"></i> 11th Annual Prop Bet Challenge Tracker</h2>
+        <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge Tracker</h2>
+        
+        <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.75rem; opacity: 0.8;">Waiting for signal...</p>
+
         <div class="d-flex justify-content-center gap-2 mt-2">
             <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;">
                 <i class="fas fa-sync-alt"></i> Refresh
@@ -165,12 +173,17 @@
             const loading = document.getElementById("loading");
             const table = document.getElementById("prop-table");
             
-            loading.style.display = "block";
-            table.innerHTML = "";
+            // Show loading only if table is empty (first load)
+            if(table.innerHTML === "") loading.style.display = "block";
 
             Papa.parse(sheetUrl, {
                 download: true, header: false,
-                complete: function(results) { renderTable(results.data); },
+                complete: function(results) { 
+                    renderTable(results.data);
+                    // NEW: Update Timestamp on success
+                    const now = new Date();
+                    document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
+                },
                 error: function(err) { loading.innerText = "Error loading data."; }
             });
         }
@@ -200,13 +213,13 @@
                     }
                 });
                 let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                stats.push(percent + "% Correct"); // Shortened for mobile
+                // Reverted to full text per request
+                stats.push(percent + "% Correct"); 
             });
 
             html += `<thead><tr>`;
             
             // MANUAL HEADERS
-            // Note: We use the same classes (.col-rank, etc) to ensure width alignment
             html += `<th class="sticky-col col-rank">#</th>`; 
 
             headers.forEach((h, index) => {
@@ -214,10 +227,8 @@
                 if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
                 
-                // Format Header: Put text on top, points below
                 let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
                 
-                // Add Badge
                 if(stats[index]) {
                     let badgeColor = parseInt(stats[index]) > 50 ? 'bg-success' : 'bg-secondary';
                     formattedHeader += `<br><span class="badge ${badgeColor} mt-1">${stats[index]}</span>`;
@@ -243,16 +254,18 @@
                 if(!row[0]) return; 
 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
-                // If Rank #1, add a Crown and Gold Background
-let rankContent = rank + 1;
-let rankClass = "sticky-col col-rank fw-bold";
-
-if (rank === 0) { // 0 is the first index (Rank 1)
-    rankContent = `<i class="fas fa-crown text-warning"></i>`; // Crown Icon
-    rankClass += " bg-dark text-white border-bottom-0"; // Dark background to make Gold pop
-}
-
-html += `<td class="${rankClass}">${rankContent}</td>`;
+                
+                // --- NEW: RANK 1 CROWN LOGIC ---
+                let rankContent = rank + 1;
+                let rankClass = "sticky-col col-rank fw-bold";
+                
+                if (rank === 0) { // If Rank 1
+                    rankContent = `<i class="fas fa-crown"></i>`; // Crown Icon
+                    rankClass += " rank-1-cell"; // Gold/Black Style
+                }
+                
+                html += `<td class="${rankClass}">${rankContent}</td>`;
+                // -------------------------------
 
                 row.forEach((cell, index) => {
                     let cssClass = "";
@@ -308,6 +321,3 @@ html += `<td class="${rankClass}">${rankContent}</td>`;
     </script>
 </body>
 </html>
-
-
-
