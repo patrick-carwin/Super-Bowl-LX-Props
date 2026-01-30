@@ -2,61 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Super Bowl Prop Matrix</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-        
-        /* Hero Section */
+        /* Prevent bounce scroll on mobile */
+        html, body { 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #f4f6f9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+
+        /* --- 1. FLEXIBLE HEADER (Fixes Cut-off) --- */
         .header-container { 
             background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%);
             color: white; 
-            padding: 15px 20px; 
+            padding: 10px 15px; 
             text-align: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            height: 140px; 
-            position: relative; 
+            /* Removed fixed height so it grows with content */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             z-index: 100;
+            position: relative;
+            flex-shrink: 0; /* Prevents header from shrinking too small */
         }
         
-        /* Main Table Window */
+        .header-container h2 { font-size: 1.5rem; margin-bottom: 5px; }
+
+        /* --- 2. SCROLLABLE WINDOW (Fills remaining space) --- */
+        .main-content {
+            flex-grow: 1; /* Fills all vertical space left by header */
+            position: relative;
+            overflow: hidden; /* Contains the scrollable table */
+            display: flex;
+            flex-direction: column;
+        }
+
         .table-container {
-            height: calc(100vh - 160px); 
             overflow: auto; 
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            margin-top: -20px;
-            margin-left: 10px;
-            margin-right: 10px;
-            position: relative;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            height: 100%; /* Fill the main-content area */
         }
 
-        table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
-        
-        /* --- STICKY TOP HEADER (The Header Block) --- */
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 50; /* Keeps the whole header block on top of the body */
-        }
-
-        /* --- STICKY LEFT COLUMNS (Rank, Name, Score) --- */
-        .sticky-col {
-            position: sticky;
-            z-index: 20; /* Sits above normal body cells */
-            border-right: 2px solid #dee2e6;
+        table { 
+            white-space: nowrap; 
+            font-size: 0.9rem; 
+            border-collapse: separate; 
+            border-spacing: 0; 
         }
         
-        /* The "Super Sticky" Intersection (Top-Left Corners) */
-        /* These need to be higher than everything else */
-        thead .sticky-col {
-            z-index: 60 !important; 
-        }
+        /* --- STICKY LOGIC --- */
+        thead { position: sticky; top: 0; z-index: 50; }
+        .sticky-col { position: sticky; z-index: 20; border-right: 1px solid #dee2e6; }
+        thead .sticky-col { z-index: 60 !important; } /* Top-Left Corners sit on top */
 
-        /* Column Widths & Positions */
+        /* --- DESKTOP COLUMN WIDTHS --- */
         .col-rank { left: 0; min-width: 50px; text-align: center; background-color: #f8f9fa; }
         .col-name { left: 50px; min-width: 180px; text-align: left !important; padding-left: 15px; background-color: #fff; }
         .col-score { left: 230px; min-width: 80px; font-weight: bold; text-align: center; background-color: #fff; }
@@ -64,61 +69,80 @@
         /* COLORS */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
+        .table-warning { background-color: #fff3cd !important; }
         
         /* HEADER STYLING */
-        /* Row 1: Questions */
         thead tr:first-child th { 
             background-color: #212529; 
             color: white; 
             vertical-align: bottom; 
             text-align: center;
+            padding-top: 12px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #444;
         }
         
-        /* Row 2: Answer Key */
         .key-row td { 
             background-color: #212529 !important; 
-            color: #ffc107 !important; /* Gold */
+            color: #ffc107 !important; 
             font-weight: bold;
-            border-bottom: 4px solid #ffd700; /* Gold Line Separator */
+            border-bottom: 4px solid #ffd700; 
             text-align: center;
         }
 
-        /* Fix for Sticky Backgrounds in Header */
-        /* We must explicitly color the sticky headers or they become transparent */
+        /* Fix sticky background transparency */
         thead tr:first-child .sticky-col { background-color: #212529; color: white; }
         thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
-        /* Body Alignment */
-        tbody td { text-align: center; vertical-align: middle; }
-        .table-warning { background-color: #fff3cd !important; }
+        tbody td { text-align: center; vertical-align: middle; padding: 8px; }
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
+
+        /* --- MOBILE OPTIMIZATION (The Magic Part) --- */
+        @media (max-width: 768px) {
+            /* Shrink Font */
+            table { font-size: 0.8rem; }
+            .header-container h2 { font-size: 1.2rem; }
+            
+            /* Tighten Columns */
+            .col-rank { min-width: 35px; } /* Shrink Rank */
+            .col-name { left: 35px; min-width: 120px; padding-left: 8px; } /* Shrink Name */
+            .col-score { left: 155px; min-width: 50px; } /* Shrink Score */
+            
+            /* Adjust Badges */
+            .badge { font-size: 0.6em !important; }
+            
+            /* Hide the "Find my name" placeholder text to save space */
+            #searchInput::placeholder { color: transparent; }
+            #searchInput { width: 120px !important; }
+        }
     </style>
 </head>
-<body>
+<body class="d-flex flex-column">
 
     <div class="header-container">
         <h2 class="m-0"><i class="fas fa-football-ball"></i> 11th Annual Prop Bet Challenge Tracker</h2>
-        <div class="d-flex justify-content-center gap-2 mt-3">
-            <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm">
+        <div class="d-flex justify-content-center gap-2 mt-2">
+            <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
             <input type="text" id="searchInput" onkeyup="filterTable()" 
                    class="form-control form-control-sm shadow-sm" 
-                   style="max-width: 200px;" placeholder="🔍 Find my name...">
+                   style="max-width: 200px;" placeholder="Find Name...">
         </div>
     </div>
 
-    <div class="table-container">
-        <table class="table table-hover mb-0" id="prop-table">
-            </table>
-        <div id="loading" class="loading-msg">Loading data from the field...</div>
+    <div class="main-content">
+        <div class="table-container">
+            <table class="table table-hover mb-0" id="prop-table">
+                </table>
+            <div id="loading" class="loading-msg">Loading data from the field...</div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <script>
-        // --- PASTE YOUR WEB_MATRIX CSV LINK HERE ---
+        // --- PASTE YOUR CSV LINK HERE ---
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
 
         function loadData() {
@@ -141,16 +165,14 @@
             
             if (!data || data.length < 2) return;
 
-            const headers = data[0]; // Row 1 of CSV
-            const keyRow = data[1];  // Row 2 of CSV
+            const headers = data[0]; 
+            const keyRow = data[1];  
             const players = data.slice(2); 
 
-            // --- CROWD STATS LOGIC ---
+            // --- STATS LOGIC ---
             let stats = [];
             headers.forEach((h, colIndex) => {
-                // Skip Name (0) and Score (1) columns
                 if(colIndex < 2) { stats.push(null); return; }
-                
                 const correctAns = keyRow[colIndex];
                 if(!correctAns || correctAns === "") { stats.push(null); return; }
 
@@ -162,38 +184,34 @@
                     }
                 });
                 let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                stats.push(percent + "% Correct");
+                stats.push(percent + "%"); // Shortened for mobile
             });
 
-            // --- BUILD THEAD ---
-            html += `<thead>`;
+            html += `<thead><tr>`;
             
-            // ROW 1: HEADERS
-            html += `<tr>`;
-            
-            // Manual Rank Header (Not in CSV)
+            // MANUAL HEADERS
+            // Note: We use the same classes (.col-rank, etc) to ensure width alignment
             html += `<th class="sticky-col col-rank">#</th>`; 
 
             headers.forEach((h, index) => {
                 let stickyClass = "";
-                // CSV Index 0 = Name (HTML Col 2) -> Needs .col-name
                 if(index === 0) stickyClass = "sticky-col col-name"; 
-                // CSV Index 1 = Score (HTML Col 3) -> Needs .col-score
                 if(index === 1) stickyClass = "sticky-col col-score";
                 
+                // Format Header: Put text on top, points below
                 let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
                 
+                // Add Badge
                 if(stats[index]) {
                     let badgeColor = parseInt(stats[index]) > 50 ? 'bg-success' : 'bg-secondary';
-                    formattedHeader += `<br><span class="badge ${badgeColor} mt-1" style="font-size:0.7em">${stats[index]}</span>`;
+                    formattedHeader += `<br><span class="badge ${badgeColor} mt-1">${stats[index]}</span>`;
                 }
                 html += `<th class="${stickyClass}">${formattedHeader}</th>`;
             });
             html += `</tr>`;
 
-            // ROW 2: ANSWER KEY
+            // ANSWER KEY ROW
             html += `<tr class="key-row">`;
-            // Manual Rank Key Cell
             html += `<td class="sticky-col col-rank">-</td>`; 
             
             keyRow.forEach((cell, index) => {
@@ -204,13 +222,11 @@
             });
             html += `</tr></thead><tbody>`;
 
-            // --- BUILD BODY ---
+            // PLAYERS
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
-                
-                // Manual Rank Cell
                 html += `<td class="sticky-col col-rank fw-bold">${rank + 1}</td>`;
 
                 row.forEach((cell, index) => {
@@ -220,7 +236,7 @@
                     if(index === 0) cssClass = "sticky-col col-name";
                     if(index === 1) cssClass = "sticky-col col-score";
 
-                    if (index >= 2) { // Questions start at CSV index 2
+                    if (index >= 2) { 
                         const correctAns = keyRow[index];
                         if (correctAns && correctAns.trim() !== "") {
                             if (content === correctAns) {
@@ -241,7 +257,6 @@
             document.getElementById("loading").style.display = "none";
         }
 
-        // Search Logic
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
@@ -255,15 +270,11 @@
             }
         }
 
-        // Updated Toggle Highlight Logic
         function toggleHighlight(row) {
-            // Check if THIS row is already highlighted
             if (row.classList.contains("table-warning")) {
-                row.classList.remove("table-warning"); // Turn it off
+                row.classList.remove("table-warning");
             } else {
-                // Turn off everyone else
                 document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning"));
-                // Turn this one on
                 row.classList.add("table-warning");
             }
         }
