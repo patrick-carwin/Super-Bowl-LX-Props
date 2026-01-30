@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>11th Annual Prop Bet Challenge</title>
     
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/33/33702.png">
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/American_football_icon_simple_flat.svg/512px-American_football_icon_simple_flat.svg.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -225,7 +225,7 @@
     <script>
         // --- CONFIGURATION ---
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
-        const BUY_IN = 10; // UPDATED: Buy-in is now $10
+        const BUY_IN = 10; 
 
         // --- 1. INITIALIZE TOOLTIPS ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -242,9 +242,14 @@
             Papa.parse(sheetUrl, {
                 download: true, header: false,
                 complete: function(results) { 
-                    renderTable(results.data);
-                    const now = new Date();
-                    document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
+                    try {
+                        renderTable(results.data);
+                        const now = new Date();
+                        document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
+                    } catch (e) {
+                        console.error(e);
+                        alert("Error rendering table: " + e.message);
+                    }
                 },
                 error: function(err) { loading.innerText = "Error loading data."; }
             });
@@ -261,17 +266,16 @@
             const players = data.slice(2); 
 
             // --- PAYOUT LOGIC ---
-            // Calculate how many people said "Yes" in Column 2 (Prize Column)
+            // Safety: Ensure Prize Column exists (Index 2)
             let prizeCount = 0;
             players.forEach(p => {
-                // Check if index 2 exists and starts with "Y" or "y" (Yes)
                 if(p[2] && p[2].toString().toLowerCase().startsWith("y")) {
                     prizeCount++;
                 }
             });
             
             let totalPot = prizeCount * BUY_IN;
-            // UPDATED PAYOUT PERCENTAGES: 60/20/10 (House keeps 10%)
+            // 60 / 20 / 10 Split
             document.getElementById("potTotal").innerText = "$" + totalPot;
             document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * 0.6);
             document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
@@ -279,8 +283,8 @@
 
 
             // --- PROGRESS BAR ---
-            // Adjusted for extra Prize Column (now index 3 is where questions start)
-            let totalQuestions = headers.length - 3; 
+            // Index 3 is where questions start
+            let totalQuestions = headers.length > 3 ? headers.length - 3 : 1; 
             let answeredQuestions = 0;
             keyRow.forEach((cell, index) => {
                 if(index >= 3 && cell && cell !== "") answeredQuestions++;
@@ -291,7 +295,7 @@
             // --- STATS LOGIC ---
             let stats = [];
             headers.forEach((h, colIndex) => {
-                if(colIndex < 3) { stats.push(null); return; } // Skip Rank, Score, Prize
+                if(colIndex < 3) { stats.push(null); return; } 
                 const correctAns = keyRow[colIndex];
                 if(!correctAns || correctAns === "") { stats.push(null); return; }
 
@@ -315,8 +319,126 @@
                 if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
                 
-                // Formatting
                 let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
                 
-                // Prize Column Header
                 if(index === 2) formattedHeader = '<i class="fas fa-sack-dollar text-warning"></i>';
+
+                if(stats[index]) {
+                    let badgeColor = parseInt(stats[index]) > 50 ? 'bg-success' : 'bg-secondary';
+                    formattedHeader += `<br><span class="badge ${badgeColor} mt-1">${stats[index]}</span>`;
+                }
+                html += `<th class="${stickyClass}">${formattedHeader}</th>`;
+            });
+            html += `</tr>`;
+
+            // --- KEY ROW ---
+            html += `<tr class="key-row">`;
+            html += `<td class="sticky-col col-rank">-</td>`; 
+            
+            keyRow.forEach((cell, index) => {
+                let stickyClass = "";
+                if(index === 0) stickyClass = "sticky-col col-name";
+                if(index === 1) stickyClass = "sticky-col col-score";
+                html += `<td class="${stickyClass}">${cell ? cell : "-"}</td>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            // --- PLAYERS ---
+            players.forEach((row, rank) => {
+                if(!row[0]) return; 
+
+                html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
+                
+                // 1. RANK LOGIC
+                let rankContent = rank + 1;
+                let rankClass = "sticky-col col-rank fw-bold";
+                if (rank === 0) { 
+                    rankContent = `<i class="fas fa-crown text-dark"></i>`; 
+                    rankClass += " rank-1-cell"; 
+                } else if (rank === players.length - 1) {
+                    rankContent = `<i class="fas fa-snowflake text-primary"></i>`;
+                    rankClass += " rank-last-cell";
+                }
+                html += `<td class="${rankClass}">${rankContent}</td>`;
+
+                // 2. NAME & STREAK LOGIC
+                let playerName = row[0]; 
+                
+                // STREAK: Ignore last col (Tie Breaker) using length - 2
+                let currentStreak = 0;
+                // Only run loop if there are actually questions (length > 3)
+                if(row.length > 3) {
+                    for (let i = row.length - 2; i >= 3; i--) { 
+                        const playerAnswer = row[i];
+                        const correctAnswer = keyRow[i];
+                        if (correctAnswer && correctAnswer !== "") {
+                            if (playerAnswer === correctAnswer) {
+                                currentStreak++;
+                            } else { break; }
+                        }
+                    }
+                }
+                if (currentStreak >= 3) {
+                    playerName += ` <span class="badge bg-danger ms-1">🔥 ${currentStreak}</span>`;
+                }
+                
+                html += `<td class="sticky-col col-name">${playerName}</td>`;
+                html += `<td class="sticky-col col-score">${row[1]}</td>`;
+
+                // 3. PRIZE COLUMN (Index 2)
+                let isPrize = row[2] && row[2].toString().toLowerCase().startsWith("y");
+                let prizeIcon = isPrize ? '<i class="fas fa-money-bill-wave text-success"></i>' : '<span class="text-muted small">-</span>';
+                html += `<td class="text-center">${prizeIcon}</td>`;
+
+                // 4. ANSWERS (Start at Index 3)
+                row.forEach((cell, index) => {
+                    if (index < 3) return; 
+
+                    let cssClass = "";
+                    let content = cell ? cell : "";
+
+                    const correctAns = keyRow[index];
+                    if (correctAns && correctAns.trim() !== "") {
+                        if (content === correctAns) {
+                            cssClass += " correct-cell"; 
+                            content += ` <i class="fas fa-check small text-success"></i>`;
+                        } else {
+                            cssClass += " incorrect-cell"; 
+                        }
+                    }
+                    html += `<td class="${cssClass}">${content}</td>`;
+                });
+                html += `</tr>`;
+            });
+
+            html += `</tbody>`;
+            table.innerHTML = html;
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            const tr = document.getElementById("prop-table").getElementsByTagName("tr");
+            for (let i = 2; i < tr.length; i++) { 
+                let td = tr[i].querySelector(".col-name");
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    tr[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
+                }
+            }
+        }
+
+        function toggleHighlight(row) {
+            if (row.classList.contains("table-warning")) {
+                row.classList.remove("table-warning");
+            } else {
+                document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning"));
+                row.classList.add("table-warning");
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
