@@ -78,16 +78,17 @@ tbody td {
 <body>
 
     <div class="header-container">
-        <h1><i class="fas fa-football-ball"></i> 11th Annual Prop Bet Challenge Tracker</h1>
+        <h1><i class="fas fa-football-ball"></i> Game Day Tracker</h1>
         <p class="mb-2">Live Prop Bet Results</p>
-        <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm"><i class="fas fa-sync-alt"></i> Refresh Board</button>
-    </div>
-
-    <div class="container-fluid px-4 pb-5">
-        <div class="table-container">
-            <table class="table table-hover mb-0" id="prop-table">
-                </table>
-            <div id="loading" class="loading-msg">Loading data from the field...</div>
+        
+        <div class="d-flex justify-content-center gap-2">
+            <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            
+            <input type="text" id="searchInput" onkeyup="filterTable()" 
+                   class="form-control form-control-sm shadow-sm" 
+                   style="max-width: 200px;" placeholder="🔍 Find my name...">
         </div>
     </div>
 
@@ -199,6 +200,7 @@ tbody td {
 
 </body>
 </html>
+
 
 
 
