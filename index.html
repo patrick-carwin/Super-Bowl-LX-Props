@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Bowl Prop Matrix</title>
+    <title>11th Annual Prop Bet Challenge Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -80,11 +80,18 @@
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         .table-warning { background-color: #fff3cd !important; }
         
-        /* NEW DESIGN: Rank 1 Crown Style (Gold Background, Black Text) */
+        /* Rank 1 Crown Style (Gold Background) */
         .rank-1-cell { 
-            background-color: #FFD700 !important; /* Gold */
-            color: #000 !important; /* Black Text */
+            background-color: #FFD700 !important; 
+            color: #000 !important; 
             border-right: 1px solid #c6a300; 
+        }
+        
+        /* Last Place Ice Style (Light Blue) */
+        .rank-last-cell {
+            background-color: #e3f2fd !important;
+            color: #0d6efd !important;
+            border-right: 1px solid #dee2e6;
         }
 
         /* HEADER STYLING */
@@ -106,7 +113,7 @@
         /* --- MOBILE OPTIMIZATION --- */
         @media (max-width: 768px) {
             table { font-size: 0.8rem; }
-            .header-container h2 { font-size: 1.2rem; }
+            .header-container h2 { font-size: 1.1rem; }
             .col-rank { min-width: 35px; } 
             .col-name { left: 35px; min-width: 120px; padding-left: 8px; } 
             .col-score { left: 155px; min-width: 50px; } 
@@ -162,7 +169,7 @@
               <h6 class="fw-bold">1. Grading</h6>
               <p class="small text-muted mb-2">All results are graded based on the live broadcast verdict. Admin decision is final.</p>
               <h6 class="fw-bold">2. Tie Breaker</h6>
-              <p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over (Price is Right rules do not apply).</p>
+              <p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over.</p>
               <h6 class="fw-bold">3. Refreshing</h6>
               <p class="small text-muted m-0">Scores update roughly 3-5 minutes after the admin keys them in.</p>
             </div>
@@ -271,33 +278,59 @@
 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
                 
-                // NEW: Rank 1 Crown with GOLD background and BLACK text
+                // 1. RANK LOGIC (Crown for Top, Snow for Bottom)
                 let rankContent = rank + 1;
                 let rankClass = "sticky-col col-rank fw-bold";
                 
                 if (rank === 0) { 
-                    rankContent = `<i class="fas fa-crown text-dark"></i>`; // Black Crown
+                    rankContent = `<i class="fas fa-crown text-dark"></i>`; 
                     rankClass += " rank-1-cell"; 
+                } else if (rank === players.length - 1) {
+                    rankContent = `<i class="fas fa-snowflake text-primary"></i>`;
+                    rankClass += " rank-last-cell";
                 }
-                
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
+                // 2. NAME & STREAK LOGIC
+                let playerName = row[0]; // Name is index 0
+                
+                // --- STREAK CALCULATION ---
+                let currentStreak = 0;
+                // Loop backwards from last question to find consecutive wins
+                for (let i = row.length - 1; i >= 2; i--) {
+                    const playerAnswer = row[i];
+                    const correctAnswer = keyRow[i];
+                    // Only count if this question has been graded in the key
+                    if (correctAnswer && correctAnswer !== "") {
+                        if (playerAnswer === correctAnswer) {
+                            currentStreak++;
+                        } else {
+                            break; // Streak broken
+                        }
+                    }
+                }
+                // If streak is 3 or more, add Fire Emoji
+                if (currentStreak >= 3) {
+                    playerName += ` <span class="badge bg-danger ms-1">🔥 ${currentStreak}</span>`;
+                }
+                
+                html += `<td class="sticky-col col-name">${playerName}</td>`;
+                html += `<td class="sticky-col col-score">${row[1]}</td>`;
+
+                // 3. ANSWERS LOOP
                 row.forEach((cell, index) => {
+                    if (index < 2) return; // Skip Name/Score
+
                     let cssClass = "";
                     let content = cell ? cell : "";
 
-                    if(index === 0) cssClass = "sticky-col col-name";
-                    if(index === 1) cssClass = "sticky-col col-score";
-
-                    if (index >= 2) { 
-                        const correctAns = keyRow[index];
-                        if (correctAns && correctAns.trim() !== "") {
-                            if (content === correctAns) {
-                                cssClass += " correct-cell"; 
-                                content += ` <i class="fas fa-check small text-success"></i>`;
-                            } else {
-                                cssClass += " incorrect-cell"; 
-                            }
+                    const correctAns = keyRow[index];
+                    if (correctAns && correctAns.trim() !== "") {
+                        if (content === correctAns) {
+                            cssClass += " correct-cell"; 
+                            content += ` <i class="fas fa-check small text-success"></i>`;
+                        } else {
+                            cssClass += " incorrect-cell"; 
                         }
                     }
                     html += `<td class="${cssClass}">${content}</td>`;
