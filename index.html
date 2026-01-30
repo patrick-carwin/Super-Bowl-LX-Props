@@ -52,7 +52,7 @@
 <body>
 
     <div class="header-container">
-        <h1><i class="fas fa-football-ball"></i> 11th Annual Super Bowl Prop Bet Challenge</h1>
+        <h1><i class="fas fa-football-ball"></i> Game Day Tracker</h1>
         <p class="mb-2">Live Prop Bet Results</p>
         <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm"><i class="fas fa-sync-alt"></i> Refresh Board</button>
     </div>
@@ -69,7 +69,7 @@
     
     <script>
         // --- PASTE YOUR NEW WEB_MATRIX CSV LINK HERE ---
-        const sheetUrl = "PASTE_LINK_HERE"; 
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
 
         function loadData() {
             document.getElementById("loading").style.display = "block";
