@@ -35,7 +35,6 @@
             font-size: 0.85rem;
         }
         .payout-item { display: flex; flex-direction: column; line-height: 1.1; position: relative; }
-        /* Add explicit dividers for desktop */
         .payout-item:not(:last-child):after {
             content: ""; position: absolute; right: -8px; top: 10%; height: 80%; 
             border-right: 1px solid rgba(255,255,255,0.3);
@@ -59,13 +58,18 @@
         .table-container { overflow: auto; background: white; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); height: 100%; }
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
-        /* --- ZEBRA STRIPING FIX --- */
+        /* --- BORDERS & STRIPING --- */
+        /* Vertical Borders for ALL cells */
+        td, th { border-right: 1px solid #dee2e6; }
+        td:last-child, th:last-child { border-right: none; }
+
+        /* Zebra Striping (Solid Color Fix) */
         tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
         tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
 
         /* --- STICKY LOGIC --- */
         thead { position: sticky; top: 0; z-index: 50; }
-        .sticky-col { position: sticky; z-index: 20; border-right: 1px solid #dee2e6; }
+        .sticky-col { position: sticky; z-index: 20; } 
         thead .sticky-col { z-index: 60 !important; } 
 
         /* --- COLUMN WIDTHS --- */
@@ -92,7 +96,7 @@
             background-color: #212529 !important; color: #ffc107 !important; font-weight: bold;
             border-bottom: 4px solid #ffd700; text-align: center;
         }
-        /* Sticky Fixes */
+        /* Sticky Header Colors */
         thead tr:first-child .sticky-col { background-color: #212529; color: white; }
         thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
@@ -110,10 +114,9 @@
             #searchInput::placeholder { color: transparent; }
             #searchInput { width: 100px !important; }
             
-            /* --- PAYOUT BAR FIX --- */
-            /* Show all 4 items, but shrink gap and text to fit */
+            /* Payout Bar Tweaks for Mobile */
             .payout-board { gap: 8px; padding: 5px; }
-            .payout-item:not(:last-child):after { right: -4px; } /* Move divider closer */
+            .payout-item:not(:last-child):after { right: -4px; } 
             .payout-label { font-size: 0.6em; }
             .payout-val { font-size: 0.85em; }
         }
@@ -278,7 +281,6 @@
             const players = data.slice(2); 
 
             // --- PAYOUT LOGIC ---
-            // Safety: Ensure Prize Column exists (Index 2)
             let prizeCount = 0;
             players.forEach(p => {
                 if(p[2] && p[2].toString().toLowerCase().startsWith("y")) {
@@ -287,15 +289,13 @@
             });
             
             let totalPot = prizeCount * BUY_IN;
-            // 60 / 20 / 10 Split
             document.getElementById("potTotal").innerText = "$" + totalPot;
             document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * 0.6);
             document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
             document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
 
 
-            // --- PROGRESS BAR ---
-            // Index 3 is where questions start
+            // --- PROGRESS BAR & GAME LIVE CHECK ---
             let totalQuestions = headers.length > 3 ? headers.length - 3 : 1; 
             let answeredQuestions = 0;
             keyRow.forEach((cell, index) => {
@@ -303,6 +303,8 @@
             });
             let progressPercent = (answeredQuestions / totalQuestions) * 100;
             document.getElementById("gameProgress").style.width = progressPercent + "%";
+            
+            const isGameLive = answeredQuestions > 0;
 
             // --- STATS LOGIC ---
             let stats = [];
@@ -364,12 +366,15 @@
                 // 1. RANK LOGIC
                 let rankContent = rank + 1;
                 let rankClass = "sticky-col col-rank fw-bold";
-                if (rank === 0) { 
-                    rankContent = `<i class="fas fa-crown text-dark"></i>`; 
-                    rankClass += " rank-1-cell"; 
-                } else if (rank === players.length - 1) {
-                    rankContent = `<i class="fas fa-snowflake text-primary"></i>`;
-                    rankClass += " rank-last-cell";
+                
+                if (isGameLive) {
+                    if (rank === 0) { 
+                        rankContent = `<i class="fas fa-crown text-dark"></i>`; 
+                        rankClass += " rank-1-cell"; 
+                    } else if (rank === players.length - 1) {
+                        rankContent = `<i class="fas fa-snowflake text-primary"></i>`;
+                        rankClass += " rank-last-cell";
+                    }
                 }
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
@@ -378,7 +383,6 @@
                 
                 // STREAK: Ignore last col (Tie Breaker) using length - 2
                 let currentStreak = 0;
-                // Only run loop if there are actually questions (length > 3)
                 if(row.length > 3) {
                     for (let i = row.length - 2; i >= 3; i--) { 
                         const playerAnswer = row[i];
