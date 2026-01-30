@@ -30,18 +30,17 @@
             flex-shrink: 0; 
         }
         
-        .header-container h2 { font-size: 1.5rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .header-container h2 { font-size: 1.4rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* --- NEW: LIVE PULSE ANIMATION --- */
+        /* PULSE ANIMATION */
         .live-indicator {
             display: inline-block;
             width: 10px; height: 10px;
-            background-color: #ff3b3b; /* Bright Red */
+            background-color: #ff3b3b;
             border-radius: 50%;
             box-shadow: 0 0 0 rgba(255, 59, 59, 0.7);
             animation: pulse 2s infinite;
         }
-
         @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); }
@@ -64,12 +63,7 @@
             height: 100%; 
         }
 
-        table { 
-            white-space: nowrap; 
-            font-size: 0.9rem; 
-            border-collapse: separate; 
-            border-spacing: 0; 
-        }
+        table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
         /* --- STICKY LOGIC --- */
         thead { position: sticky; top: 0; z-index: 50; }
@@ -86,33 +80,23 @@
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         .table-warning { background-color: #fff3cd !important; }
         
-        /* NEW: Rank 1 Crown Style */
+        /* NEW DESIGN: Rank 1 Crown Style (Gold Background, Black Text) */
         .rank-1-cell { 
-            background-color: #212529 !important; 
-            color: #ffd700 !important; 
-            border-right: 1px solid #444; 
+            background-color: #FFD700 !important; /* Gold */
+            color: #000 !important; /* Black Text */
+            border-right: 1px solid #c6a300; 
         }
 
         /* HEADER STYLING */
         thead tr:first-child th { 
-            background-color: #212529; 
-            color: white; 
-            vertical-align: bottom; 
-            text-align: center;
-            padding-top: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #444;
+            background-color: #212529; color: white; vertical-align: bottom; text-align: center;
+            padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444;
         }
-        
         .key-row td { 
-            background-color: #212529 !important; 
-            color: #ffc107 !important; 
-            font-weight: bold;
-            border-bottom: 4px solid #ffd700; 
-            text-align: center;
+            background-color: #212529 !important; color: #ffc107 !important; font-weight: bold;
+            border-bottom: 4px solid #ffd700; text-align: center;
         }
-
-        /* Fix sticky background transparency */
+        /* Sticky Fixes */
         thead tr:first-child .sticky-col { background-color: #212529; color: white; }
         thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
@@ -123,16 +107,10 @@
         @media (max-width: 768px) {
             table { font-size: 0.8rem; }
             .header-container h2 { font-size: 1.2rem; }
-            
-            /* Tighten Columns */
             .col-rank { min-width: 35px; } 
             .col-name { left: 35px; min-width: 120px; padding-left: 8px; } 
             .col-score { left: 155px; min-width: 50px; } 
-            
-            /* Adjust Badges */
             .badge { font-size: 0.6em !important; white-space: normal; }
-            
-            /* Hide placeholder text */
             #searchInput::placeholder { color: transparent; }
             #searchInput { width: 120px !important; }
         }
@@ -143,7 +121,11 @@
     <div class="header-container">
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge Tracker</h2>
         
-        <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.75rem; opacity: 0.8;">Waiting for signal...</p>
+        <div class="progress bg-white bg-opacity-25 mt-2 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
+            <div id="gameProgress" class="progress-bar bg-warning" role="progressbar" style="width: 0%; border-radius: 10px;"></div>
+        </div>
+
+        <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.7rem; opacity: 0.8;">Waiting for signal...</p>
 
         <div class="d-flex justify-content-center gap-2 mt-2">
             <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;">
@@ -152,6 +134,12 @@
             <input type="text" id="searchInput" onkeyup="filterTable()" 
                    class="form-control form-control-sm shadow-sm" 
                    style="max-width: 200px;" placeholder="Find Name...">
+        </div>
+        
+        <div class="text-center mt-2">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#rulesModal" class="text-white-50 text-decoration-none" style="font-size: 0.75rem;">
+                <i class="fas fa-info-circle"></i> House Rules
+            </a>
         </div>
     </div>
 
@@ -163,7 +151,30 @@
         </div>
     </div>
 
+    <div class="modal fade" id="rulesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered p-3">
+          <div class="modal-content shadow-lg">
+            <div class="modal-header bg-dark text-white">
+              <h5 class="modal-title fs-6"><i class="fas fa-gavel text-warning"></i> Official Rules</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark" style="white-space: normal; font-size: 0.9rem;">
+              <h6 class="fw-bold">1. Grading</h6>
+              <p class="small text-muted mb-2">All results are graded based on the live broadcast verdict. Admin decision is final.</p>
+              <h6 class="fw-bold">2. Tie Breaker</h6>
+              <p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over (Price is Right rules do not apply).</p>
+              <h6 class="fw-bold">3. Refreshing</h6>
+              <p class="small text-muted m-0">Scores update roughly 3-5 minutes after the admin keys them in.</p>
+            </div>
+            <div class="modal-footer p-1">
+              <button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
         // --- PASTE YOUR CSV LINK HERE ---
@@ -173,14 +184,12 @@
             const loading = document.getElementById("loading");
             const table = document.getElementById("prop-table");
             
-            // Show loading only if table is empty (first load)
             if(table.innerHTML === "") loading.style.display = "block";
 
             Papa.parse(sheetUrl, {
                 download: true, header: false,
                 complete: function(results) { 
                     renderTable(results.data);
-                    // NEW: Update Timestamp on success
                     const now = new Date();
                     document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
                 },
@@ -198,6 +207,15 @@
             const keyRow = data[1];  
             const players = data.slice(2); 
 
+            // --- PROGRESS BAR LOGIC ---
+            let totalQuestions = headers.length - 2; 
+            let answeredQuestions = 0;
+            keyRow.forEach((cell, index) => {
+                if(index >= 2 && cell && cell !== "") answeredQuestions++;
+            });
+            let progressPercent = (answeredQuestions / totalQuestions) * 100;
+            document.getElementById("gameProgress").style.width = progressPercent + "%";
+
             // --- STATS LOGIC ---
             let stats = [];
             headers.forEach((h, colIndex) => {
@@ -213,13 +231,11 @@
                     }
                 });
                 let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                // Reverted to full text per request
                 stats.push(percent + "% Correct"); 
             });
 
+            // --- BUILD HEADERS ---
             html += `<thead><tr>`;
-            
-            // MANUAL HEADERS
             html += `<th class="sticky-col col-rank">#</th>`; 
 
             headers.forEach((h, index) => {
@@ -237,7 +253,7 @@
             });
             html += `</tr>`;
 
-            // ANSWER KEY ROW
+            // --- BUILD KEY ROW ---
             html += `<tr class="key-row">`;
             html += `<td class="sticky-col col-rank">-</td>`; 
             
@@ -249,23 +265,22 @@
             });
             html += `</tr></thead><tbody>`;
 
-            // PLAYERS
+            // --- BUILD PLAYERS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
                 
-                // --- NEW: RANK 1 CROWN LOGIC ---
+                // NEW: Rank 1 Crown with GOLD background and BLACK text
                 let rankContent = rank + 1;
                 let rankClass = "sticky-col col-rank fw-bold";
                 
-                if (rank === 0) { // If Rank 1
-                    rankContent = `<i class="fas fa-crown"></i>`; // Crown Icon
-                    rankClass += " rank-1-cell"; // Gold/Black Style
+                if (rank === 0) { 
+                    rankContent = `<i class="fas fa-crown text-dark"></i>`; // Black Crown
+                    rankClass += " rank-1-cell"; 
                 }
                 
                 html += `<td class="${rankClass}">${rankContent}</td>`;
-                // -------------------------------
 
                 row.forEach((cell, index) => {
                     let cssClass = "";
