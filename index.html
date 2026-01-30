@@ -9,9 +9,9 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* Hero Section */
+        /* Hero Section (Patriots to Seahawks Gradient) */
         .header-container { 
-            background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); /* Patriots & Seahawks/NFL colors style */
+            background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%);
             color: white; 
             padding: 30px 20px; 
             text-align: center; 
@@ -38,41 +38,36 @@
             border-right: 2px solid #dee2e6;
         }
         .col-rank { left: 0; min-width: 40px; }
-        .col-name { left: 40px; min-width: 150px; }
+        .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 15px; }
         .col-score { left: 190px; min-width: 80px; font-weight: bold; }
 
         /* Color Coding */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; border: 1px solid #badbcc; } /* Green */
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; border: 1px solid #f5c2c7; } /* Red */
-        /* Specific style for the Answer Key Row */
-.key-row, .key-row td, .sticky-col.key-row { 
-    background-color: #212529 !important; 
-    color: #ffc107 !important; /* Forces Gold Text */
-    font-weight: bold;
-}
+        
+        /* Answer Key Row Styling */
+        .key-row, .key-row td, .sticky-col.key-row { 
+            background-color: #212529 !important; 
+            color: #ffc107 !important; /* Gold Text */
+            font-weight: bold;
+        }
 
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- PASTE THE NEW RULE HERE --- */
+        /* Header Alignment */
         thead th { 
             vertical-align: bottom !important; 
             text-align: center;
         }
-        
-        /* Keep Name aligned Left for readability */
-        .col-name { text-align: left !important; }
 
-        /* Center ALL table data cells (Rank, Scores, Answers) */
-tbody td {
-    text-align: center;
-    vertical-align: middle; /* Ensures text floats in the middle of the row height */
-}
+        /* Body Data Alignment */
+        tbody td {
+            text-align: center;
+            vertical-align: middle; 
+        }
 
-/* BUT... keep the Name Column Left-Aligned (easier to read) */
-.col-name {
-    text-align: left !important;
-    padding-left: 15px; /* Adds a tiny bit of breathing room from the edge */
-}
+        /* Search Highlight */
+        .table-warning { background-color: #fff3cd !important; }
     </style>
 </head>
 <body>
@@ -83,7 +78,7 @@ tbody td {
         
         <div class="d-flex justify-content-center gap-2">
             <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm">
-                <i class="fas fa-sync-alt"></i> Refresh
+                <i class="fas fa-sync-alt"></i> Refresh Board
             </button>
             
             <input type="text" id="searchInput" onkeyup="filterTable()" 
@@ -92,21 +87,36 @@ tbody td {
         </div>
     </div>
 
+    <div class="container-fluid px-4 pb-5">
+        <div class="table-container">
+            <table class="table table-hover mb-0" id="prop-table">
+                </table>
+            <div id="loading" class="loading-msg">Loading data from the field...</div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <script>
-        // --- PASTE YOUR NEW WEB_MATRIX CSV LINK HERE ---
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
+        // --- PASTE YOUR WEB_MATRIX CSV LINK HERE ---
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pubhtml?gid=1689955040&single=true"; 
 
         function loadData() {
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("prop-table").innerHTML = "";
+            const loading = document.getElementById("loading");
+            const table = document.getElementById("prop-table");
+            
+            loading.style.display = "block";
+            table.innerHTML = "";
 
             Papa.parse(sheetUrl, {
                 download: true,
-                header: false, // We use false so we can handle headers manually
+                header: false,
                 complete: function(results) {
                     renderTable(results.data);
+                },
+                error: function(err) {
+                    loading.innerText = "Error loading data. Please check the CSV link.";
+                    console.error(err);
                 }
             });
         }
@@ -115,76 +125,102 @@ tbody td {
             const table = document.getElementById("prop-table");
             let html = "";
             
-            // Row 0 = Headers (Name, Score, Q1...)
-            // Row 1 = The Answer Key (Values to compare against)
-            // Row 2+ = The Players
-            
+            // Basic Error Check for empty data
+            if (!data || data.length < 2) {
+                document.getElementById("loading").innerText = "No data found in sheet.";
+                return;
+            }
+
             const headers = data[0];
             const keyRow = data[1]; 
-            const players = data.slice(2); // All rows after the key
+            const players = data.slice(2); 
 
-            // 1. Build The Header Row
-    html += `<thead class="table-dark"><tr>`;
-    html += `<th class="sticky-col col-rank">#</th>`; // Rank Column
-    
-    headers.forEach((h, index) => {
-        let stickyClass = "";
-        if(index === 0) stickyClass = "sticky-col col-name"; 
-        if(index === 1) stickyClass = "sticky-col col-score";
-        
-        // --- NEW FORMATTING LOGIC ---
-        // Looks for " (" and replaces it with "<br>(" to force a new line
-        // formatting: "1st Celebrity (1 point)" -> "1st Celebrity <br> (1 point)"
-        const formattedHeader = h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>";
+            // --- 1. CALCULATE CROWD STATS ---
+            let stats = [];
+            headers.forEach((h, colIndex) => {
+                // Skip Rank/Name/Score columns or if no header exists
+                if(colIndex < 2 || !h) { stats.push(null); return; }
+                
+                const correctAns = keyRow[colIndex];
+                if(!correctAns || correctAns === "") { stats.push(null); return; }
 
-        html += `<th class="${stickyClass}">${formattedHeader}</th>`;
-    });
-    html += `</tr></thead><tbody>`;
+                let correctCount = 0;
+                let totalCount = 0;
+                
+                players.forEach(player => {
+                    if(player[0]) { // If player name exists
+                        totalCount++;
+                        if(player[colIndex] === correctAns) correctCount++;
+                    }
+                });
 
-            // 2. Build the "Answer Key" Row (Display it at top)
+                // Avoid division by zero
+                let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                stats.push(percent + "% Correct");
+            });
+
+
+            // --- 2. BUILD HEADER ROW ---
+            html += `<thead class="table-dark"><tr>`;
+            html += `<th class="sticky-col col-rank">#</th>`; 
+            
+            headers.forEach((h, index) => {
+                let stickyClass = "";
+                if(index === 0) stickyClass = "sticky-col col-name"; 
+                if(index === 1) stickyClass = "sticky-col col-score";
+                
+                // Formatting: "Question (Points)" -> "Question <br> (Points)"
+                let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
+
+                // Inject Stats Badge if available
+                if(stats[index]) {
+                    let badgeColor = parseInt(stats[index]) > 50 ? 'bg-success' : 'bg-secondary';
+                    formattedHeader += `<br><span class="badge ${badgeColor} mt-1" style="font-size:0.7em">${stats[index]}</span>`;
+                }
+
+                html += `<th class="${stickyClass}">${formattedHeader}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+
+            // --- 3. BUILD ANSWER KEY ROW ---
             html += `<tr class="key-row">`;
             html += `<td class="sticky-col col-rank key-row">-</td>`;
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name key-row";
                 if(index === 1) stickyClass = "sticky-col col-score key-row";
-                
-                // If the key cell is empty, show a placeholder
                 html += `<td class="${stickyClass}">${cell ? cell : "-"}</td>`;
             });
             html += `</tr>`;
 
-            // 3. Build Player Rows
+
+            // --- 4. BUILD PLAYER ROWS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; // Skip empty rows
 
-                html += `<tr>`;
+                html += `<tr onclick="highlightRow(this)" class="player-row">`;
                 html += `<td class="sticky-col col-rank fw-bold">${rank + 1}</td>`;
 
                 row.forEach((cell, index) => {
                     let cssClass = "";
-                    let content = cell;
+                    let content = cell ? cell : "";
 
-                    // Sticky classes for Name and Score
                     if(index === 0) cssClass = "sticky-col col-name";
                     if(index === 1) cssClass = "sticky-col col-score";
 
-                    // LOGIC: Highlighting Answers (Columns 2 and greater)
-                    // We compare the User's cell against keyRow[index]
+                    // Grading Logic
                     if (index >= 2) {
                         const correctAns = keyRow[index];
-                        
-                        // Only color if there is actually a correct answer set in the key
                         if (correctAns && correctAns.trim() !== "") {
-                            if (cell === correctAns) {
-                                cssClass += " correct-cell"; // Green
+                            if (content === correctAns) {
+                                cssClass += " correct-cell"; 
                                 content += ` <i class="fas fa-check small text-success"></i>`;
                             } else {
-                                cssClass += " incorrect-cell"; // Red
+                                cssClass += " incorrect-cell"; 
                             }
                         }
                     }
-
                     html += `<td class="${cssClass}">${content}</td>`;
                 });
                 html += `</tr>`;
@@ -195,12 +231,41 @@ tbody td {
             document.getElementById("loading").style.display = "none";
         }
 
+        // --- SEARCH FUNCTION ---
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById("prop-table");
+            const tr = table.getElementsByTagName("tr");
+
+            // Loop through all rows. Start at index 2 (skip Header and Key)
+            for (let i = 2; i < tr.length; i++) {
+                // Find the name cell (it has the class 'col-name')
+                let td = tr[i].querySelector(".col-name");
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        // --- HIGHLIGHT FUNCTION ---
+        function highlightRow(row) {
+            // Remove highlight from all other rows
+            const allRows = document.querySelectorAll(".player-row");
+            allRows.forEach(r => r.classList.remove("table-warning"));
+            
+            // Add highlight to clicked row
+            row.classList.add("table-warning");
+        }
+
+        // Load data on start
         window.onload = loadData;
     </script>
 
 </body>
 </html>
-
-
-
-
