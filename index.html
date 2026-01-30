@@ -80,19 +80,11 @@
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         .table-warning { background-color: #fff3cd !important; }
         
-        /* Rank 1 Crown Style (Gold Background) */
-        .rank-1-cell { 
-            background-color: #FFD700 !important; 
-            color: #000 !important; 
-            border-right: 1px solid #c6a300; 
-        }
+        /* Rank 1 Crown Style */
+        .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; }
         
-        /* Last Place Ice Style (Light Blue) */
-        .rank-last-cell {
-            background-color: #e3f2fd !important;
-            color: #0d6efd !important;
-            border-right: 1px solid #dee2e6;
-        }
+        /* Last Place Ice Style */
+        .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
         /* HEADER STYLING */
         thead tr:first-child th { 
@@ -121,6 +113,26 @@
             #searchInput::placeholder { color: transparent; }
             #searchInput { width: 120px !important; }
         }
+
+        /* --- LANDSCAPE MODE OPTIMIZATION (iPhone Horizontal) --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header-container {
+                flex-direction: row; /* Side-by-side layout */
+                justify-content: space-between;
+                align-items: center;
+                padding: 5px 15px;
+            }
+            /* Hide the tall stuff to save vertical space */
+            .progress-container, #lastUpdated, .rules-link { 
+                display: none !important; 
+            }
+            /* Make title tiny and on the left */
+            .header-container h2 { 
+                font-size: 1rem; margin: 0; text-align: left;
+            }
+            /* Pull controls up */
+            .controls-container { margin-top: 0 !important; }
+        }
     </style>
 </head>
 <body class="d-flex flex-column">
@@ -128,13 +140,13 @@
     <div class="header-container">
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge Tracker</h2>
         
-        <div class="progress bg-white bg-opacity-25 mt-2 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
+        <div class="progress-container progress bg-white bg-opacity-25 mt-2 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
             <div id="gameProgress" class="progress-bar bg-warning" role="progressbar" style="width: 0%; border-radius: 10px;"></div>
         </div>
 
         <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.7rem; opacity: 0.8;">Waiting for signal...</p>
 
-        <div class="d-flex justify-content-center gap-2 mt-2">
+        <div class="controls-container d-flex justify-content-center gap-2 mt-2">
             <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
@@ -143,7 +155,7 @@
                    style="max-width: 200px;" placeholder="Find Name...">
         </div>
         
-        <div class="text-center mt-2">
+        <div class="rules-link text-center mt-2">
             <a href="#" data-bs-toggle="modal" data-bs-target="#rulesModal" class="text-white-50 text-decoration-none" style="font-size: 0.75rem;">
                 <i class="fas fa-info-circle"></i> House Rules
             </a>
@@ -278,10 +290,9 @@
 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
                 
-                // 1. RANK LOGIC (Crown for Top, Snow for Bottom)
+                // 1. RANK LOGIC
                 let rankContent = rank + 1;
                 let rankClass = "sticky-col col-rank fw-bold";
-                
                 if (rank === 0) { 
                     rankContent = `<i class="fas fa-crown text-dark"></i>`; 
                     rankClass += " rank-1-cell"; 
@@ -292,28 +303,22 @@
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
                 // 2. NAME & STREAK LOGIC
-                let playerName = row[0]; // Name is index 0
+                let playerName = row[0]; 
                 
-               // --- STREAK CALCULATION ---
+                // --- STREAK CALCULATION (FIXED: Skips Tie Breaker Col) ---
                 let currentStreak = 0;
-                
-                // FIXED: We start at (row.length - 2) to SKIP the Tie Breaker Column
-                // This ensures the math guess doesn't break the streak of correct props
+                // Loop backwards from (length - 2) to skip tie breaker
                 for (let i = row.length - 2; i >= 2; i--) {
                     const playerAnswer = row[i];
                     const correctAnswer = keyRow[i];
-                    
-                    // Only count if this question has been graded in the key
                     if (correctAnswer && correctAnswer !== "") {
                         if (playerAnswer === correctAnswer) {
                             currentStreak++;
                         } else {
-                            break; // Streak broken
+                            break; 
                         }
                     }
                 }
-
-                // If streak is 3 or more, add Fire Emoji
                 if (currentStreak >= 3) {
                     playerName += ` <span class="badge bg-danger ms-1">🔥 ${currentStreak}</span>`;
                 }
@@ -373,4 +378,3 @@
     </script>
 </body>
 </html>
-
