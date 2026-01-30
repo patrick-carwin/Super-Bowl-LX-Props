@@ -102,15 +102,22 @@
             const players = data.slice(2); // All rows after the key
 
             // 1. Build The Header Row
-            html += `<thead class="table-dark"><tr>`;
-            html += `<th class="sticky-col col-rank">#</th>`; // Rank Column
-            headers.forEach((h, index) => {
-                let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-name"; // Name
-                if(index === 1) stickyClass = "sticky-col col-score"; // Score
-                html += `<th class="${stickyClass}">${h}</th>`;
-            });
-            html += `</tr></thead><tbody>`;
+    html += `<thead class="table-dark"><tr>`;
+    html += `<th class="sticky-col col-rank">#</th>`; // Rank Column
+    
+    headers.forEach((h, index) => {
+        let stickyClass = "";
+        if(index === 0) stickyClass = "sticky-col col-name"; 
+        if(index === 1) stickyClass = "sticky-col col-score";
+        
+        // --- NEW FORMATTING LOGIC ---
+        // Looks for " (" and replaces it with "<br>(" to force a new line
+        // formatting: "1st Celebrity (1 point)" -> "1st Celebrity <br> (1 point)"
+        const formattedHeader = h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>";
+
+        html += `<th class="${stickyClass}">${formattedHeader}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
 
             // 2. Build the "Answer Key" Row (Display it at top)
             html += `<tr class="key-row">`;
@@ -171,3 +178,4 @@
 
 </body>
 </html>
+
