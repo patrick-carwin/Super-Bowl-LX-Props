@@ -20,17 +20,26 @@
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* COMMISH SIGNAL (ANNOUNCEMENT BAR) */
-        #commishSignal { display: none; 
-    background-color: #ffc107; 
-    color: #000; 
-    font-weight: bold; 
-    font-size: 1rem; /* Increased from 0.85rem to 1rem */
-    padding: 10px;   /* Increased padding slightly */
-    text-align: center; 
-    border-bottom: 1px solid #e0a800; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Added shadow for depth */
-    animation: flash 2s infinite; }
+        /* COMMISH SIGNAL (The Announcement Bar) */
+        #commishSignal { 
+            display: none; 
+            background-color: #ffc107; 
+            color: #000; 
+            font-weight: bold; 
+            font-size: 1rem;       /* Slightly larger text */
+            padding: 10px;         /* More padding */
+            text-align: center; 
+            border-bottom: 1px solid #e0a800; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: flash 2s infinite; 
+        }
+        
+        /* Deep Flash Animation */
+        @keyframes flash { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.4; } /* Fades deep so movement is visible */
+            100% { opacity: 1; } 
+        }
 
         /* PAYOUT DASHBOARD */
         .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
@@ -41,9 +50,7 @@
 
         /* PULSE ANIMATION */
         .live-indicator { display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b; border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 
-    50% { opacity: 0.4; } /* Fades to 40% visibility - distinct but smooth */
-    100% { opacity: 1; } }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
         /* SCROLLABLE TABLE AREA */
         .main-content { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
@@ -80,16 +87,15 @@
         tbody td { text-align: center; vertical-align: middle; padding: 8px; } 
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- ZEBRA STRIPING --- */
+        /* --- ZEBRA STRIPING (Standard Grey) --- */
         tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
         tbody tr:nth-of-type(even) .col-rank,
         tbody tr:nth-of-type(even) .col-name,
         tbody tr:nth-of-type(even) .col-score { background-color: #f2f4f6 !important; }
 
-        /* --- SPOTLIGHT STYLE (NUCLEAR FIX) --- */
-        /* We use tr.player-row.table-warning to make the specificity HIGHER than the zebra stripe rule */
+        /* --- SPOTLIGHT STYLE (The Fix) --- */
+        /* Use high specificity to override zebra stripes */
         tr.player-row.table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
-        /* Force sticky columns to match the highlight */
         tr.player-row.table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
 
         /* MOBILE TWEAKS */
@@ -189,7 +195,7 @@
             <div class="modal-content shadow-lg" style="height: 80vh;">
                 <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body p-0 bg-light">
-                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
+                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
                 </div>
             </div>
         </div>
@@ -276,14 +282,21 @@
             const detailRow = data[2]; 
             const players = data.slice(3); 
             
-            // --- COMMISH SIGNAL ---
-            // Data[2][0] is the first cell of the Details row (where we put Answer_Key!A5)
-            // If it's not "DETAILS" and not empty, show it.
+            // --- COMMISH SIGNAL (READ RECEIPT LOGIC) ---
             const commishMsg = detailRow[0];
             const signalBar = document.getElementById("commishSignal");
+            const lastSeenMsg = localStorage.getItem("lastCommishMsg"); // Check memory
+
             if(commishMsg && commishMsg !== "DETAILS" && commishMsg.trim() !== "") {
-                signalBar.innerText = commishMsg;
-                signalBar.style.display = "block";
+                // Only show if the message is NEW (different from the last one seen)
+                if (commishMsg !== lastSeenMsg) {
+                    signalBar.innerText = commishMsg;
+                    signalBar.style.display = "block";
+                    // Save this message as "Seen" so it doesn't show next refresh
+                    localStorage.setItem("lastCommishMsg", commishMsg);
+                } else {
+                    signalBar.style.display = "none";
+                }
             } else {
                 signalBar.style.display = "none";
             }
@@ -323,7 +336,6 @@
             });
 
             // --- TREND LOGIC ---
-            // Retrieve previous ranks
             let prevRanks = JSON.parse(localStorage.getItem("propBetRanks") || "{}");
             let currentRanks = {};
 
@@ -381,11 +393,9 @@
             html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-name";
+                if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
-                
                 let cellContent = cell ? cell : "-";
-                // Detail Notes
                 if (cell && detailRow[index] && detailRow[index].trim() !== "" && index > 2) {
                     cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
                 }
@@ -410,9 +420,8 @@
                 let rankContent = currentRankVal;
                 let rankClass = "sticky-col col-rank fw-bold";
                 if (isGameLive) {
-                    // Calculate Trend
                     if(prevRanks[playerName]) {
-                        let diff = prevRanks[playerName] - currentRankVal; // Positive = Moved UP (rank got smaller)
+                        let diff = prevRanks[playerName] - currentRankVal; 
                         if(diff > 0) rankContent += ` <span class="text-success small" style="font-size:0.7em"><i class="fas fa-arrow-up"></i>${diff}</span>`;
                         if(diff < 0) rankContent += ` <span class="text-danger small" style="font-size:0.7em"><i class="fas fa-arrow-down"></i>${Math.abs(diff)}</span>`;
                     }
