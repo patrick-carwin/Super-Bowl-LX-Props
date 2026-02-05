@@ -21,8 +21,16 @@
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
         /* COMMISH SIGNAL (ANNOUNCEMENT BAR) */
-        #commishSignal { display: none; background-color: #ffc107; color: #000; font-weight: bold; font-size: 0.85rem; padding: 8px; text-align: center; border-bottom: 1px solid #e0a800; animation: flash 2s infinite; }
-        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        #commishSignal { display: none; 
+    background-color: #ffc107; 
+    color: #000; 
+    font-weight: bold; 
+    font-size: 1rem; /* Increased from 0.85rem to 1rem */
+    padding: 10px;   /* Increased padding slightly */
+    text-align: center; 
+    border-bottom: 1px solid #e0a800; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Added shadow for depth */
+    animation: flash 2s infinite; }
 
         /* PAYOUT DASHBOARD */
         .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
@@ -33,7 +41,9 @@
 
         /* PULSE ANIMATION */
         .live-indicator { display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b; border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
+        @keyframes pulse { 0% { opacity: 1; } 
+    50% { opacity: 0.4; } /* Fades to 40% visibility - distinct but smooth */
+    100% { opacity: 1; } }
 
         /* SCROLLABLE TABLE AREA */
         .main-content { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
