@@ -10,6 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         /* Prevent bounce scroll on mobile */
         html, body { height: 100%; overflow: hidden; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -48,7 +50,11 @@
 
         /* --- STYLES --- */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
-        .table-warning td { background-color: #fff3cd !important; } .table-warning .sticky-col { background-color: #fff3cd !important; }
+        
+        /* SPOTLIGHT STYLE (The "Me" Row) */
+        .table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
+        .table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
+        
         .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } 
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
@@ -134,11 +140,11 @@
                   <li class="mb-1"><i class="fas fa-money-bill-wave text-success" style="width:20px; text-align:center;"></i> Paid & Eligible for prize pool</li>
                   <li class="mb-1"><span class="badge bg-danger" style="width:20px;">🔥</span> 3+ Answer Streak</li>
                   <li class="mb-1"><span class="badge bg-info text-dark" style="width:20px;">🧊</span> 3+ Wrong Streak</li>
-                  <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard question! (<20% correct)</li>
-                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy question! (>90% correct)</li>
+                  <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard! (<20% correct)</li>
+                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (>90% correct)</li>
               </ul>
               
-              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap "Share" > "Add to Home Screen" to use this like a real app!</p></div>
+              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap your row to "Spotlight" it. It stays highlighted even if you refresh!</p></div>
             </div>
             <div class="modal-footer p-1"><button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button></div>
           </div>
@@ -175,19 +181,29 @@
         const BUY_IN = 10; 
         
         // *** THE MAGIC SWITCH ***
-        // FALSE = Pre-Game (Picks & Stats Hidden)
-        // TRUE = Game Time (Picks & Stats Visible)
         const SHOW_PLAYER_PICKS = true; 
 
         // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl) })
 
-        // --- NEW: SEARCH PERSISTENCE ---
+        // --- SEARCH PERSISTENCE ---
         function saveSearch() {
             const val = document.getElementById("searchInput").value;
             localStorage.setItem("propBetSearch", val);
             filterTable();
+        }
+
+        // --- SPOTLIGHT PERSISTENCE ---
+        function setSpotlight(name) {
+            // Toggle
+            let current = localStorage.getItem("propBetSpotlight");
+            if (current === name) {
+                localStorage.removeItem("propBetSpotlight"); // Unselect
+            } else {
+                localStorage.setItem("propBetSpotlight", name); // Select
+            }
+            renderTable(window.currentData); // Re-render to apply class
         }
 
         function loadData() {
@@ -199,11 +215,12 @@
                 download: true, header: false,
                 complete: function(results) { 
                     try { 
+                        window.currentData = results.data; // Store for re-rendering
                         renderTable(results.data); 
                         const now = new Date(); 
                         document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
                         
-                        // RESTORE SEARCH FROM MEMORY
+                        // Restore Search
                         const savedSearch = localStorage.getItem("propBetSearch");
                         if(savedSearch) {
                             document.getElementById("searchInput").value = savedSearch;
@@ -225,6 +242,9 @@
             const keyRow = data[1];
             const detailRow = data[2]; 
             const players = data.slice(3); 
+            
+            const spotlightName = localStorage.getItem("propBetSpotlight");
+            let spotlightRank = -1; // Track rank for confetti
 
             // --- PAYOUTS ---
             let prizeCount = 0;
@@ -243,23 +263,17 @@
             document.getElementById("gameProgress").style.width = progressPercent + "%";
             const isGameLive = answeredQuestions > 0;
 
-            // --- SORTING LOGIC (Alphabetize if Score is 0) ---
+            // --- SORTING ---
             players.sort((a, b) => {
                 let scoreA = parseFloat(a[1]) || 0;
                 let scoreB = parseFloat(b[1]) || 0;
-                
-                // 1. Sort by Score Descending
                 if (scoreB !== scoreA) return scoreB - scoreA;
-
-                // 2. If Scores match and are 0 (Pre-game), sort Alphabetically
                 if (scoreA === 0) {
                     let nameA = a[0].toLowerCase();
                     let nameB = b[0].toLowerCase();
                     if (nameA < nameB) return -1;
                     if (nameA > nameB) return 1;
                 }
-                
-                // 3. If Scores match and > 0, leave order (respects Sheet tie-breaker)
                 return 0;
             });
 
@@ -270,25 +284,18 @@
                 const correctAns = keyRow[colIndex];
                 const isGraded = (correctAns && correctAns.trim() !== "");
 
-                // ONLY SHOW STATS IF GAME STARTED
                 if (SHOW_PLAYER_PICKS) {
                     if (isGraded) {
-                        // MODE A: Graded -> Show % Correct
                         let correctCount = 0; let totalCount = 0;
                         players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
                         let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                        
-                        // NEW: WIDOWMAKER & GIMME BADGES
                         let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
                         let extraIcon = "";
-                        if (percent < 20) { extraIcon = " 💀"; badgeColor = "bg-dark"; } // Widowmaker
-                        if (percent > 90) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; } // Gimme
-                        
+                        if (percent < 20) { extraIcon = " 💀"; badgeColor = "bg-dark"; } 
+                        if (percent > 90) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; }
                         columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct${extraIcon}</span>`);
                     } else {
-                        // MODE B: Ungraded -> Show Consensus
-                        let counts = {};
-                        let totalVotes = 0;
+                        let counts = {}; let totalVotes = 0;
                         players.forEach(player => {
                             let ans = player[colIndex];
                             if(ans && ans.trim() !== "") { counts[ans] = (counts[ans] || 0) + 1; totalVotes++; }
@@ -303,12 +310,11 @@
                         } else { columnStats.push(null); }
                     }
                 } else {
-                    // MODE C: HIDDEN -> Show Lock Icon in header
                     columnStats.push(`<div class="mt-1 text-white-50 small"><i class="fas fa-lock" style="font-size: 0.7em;"></i></div>`);
                 }
             });
 
-            // --- BUILD TABLE HEADERS ---
+            // --- HEADERS ---
             html += `<thead><tr><th class="sticky-col col-rank">#</th>`; 
             headers.forEach((h, index) => {
                 let stickyClass = "";
@@ -327,9 +333,7 @@
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name";
                 if(index === 1) stickyClass = "sticky-col col-score";
-                
                 let cellContent = cell ? cell : "-";
-                // Detail Notes
                 if (cell && detailRow[index] && detailRow[index].trim() !== "") {
                     cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
                 }
@@ -337,30 +341,36 @@
             });
             html += `</tr></thead><tbody>`;
 
-            // --- PLAYER ROWS ---
+            // --- PLAYERS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
-                html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
+                
+                let playerName = row[0];
+                let isSpotlight = (playerName === spotlightName);
+                
+                // Click triggers setSpotlight instead of simple highlight
+                html += `<tr onclick="setSpotlight('${playerName.replace(/'/g, "\\'")}')" class="player-row ${isSpotlight ? 'table-warning' : ''}" style="cursor:pointer;">`;
                 
                 // Rank
                 let rankContent = rank + 1;
                 let rankClass = "sticky-col col-rank fw-bold";
                 if (isGameLive) {
-                    if (rank === 0) { rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; } 
+                    if (rank === 0) { 
+                        rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
+                        // CONFETTI CHECK: If this is the spotlight user AND they are Rank 1
+                        if(isSpotlight) spotlightRank = 1;
+                    } 
                     else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
                 }
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
                 // Name & Streaks
-                let playerName = row[0]; 
                 let hotStreak = 0; let coldStreak = 0;
                 if(row.length > 3) {
-                    // Hot
                     for (let i = row.length - 2; i >= 3; i--) { 
                         const playerAnswer = row[i]; const correctAnswer = keyRow[i];
                         if (correctAnswer && correctAnswer !== "") { if (playerAnswer === correctAnswer) hotStreak++; else break; }
                     }
-                    // Cold
                     if (hotStreak === 0) {
                         for (let i = row.length - 2; i >= 3; i--) {
                             const playerAnswer = row[i]; const correctAnswer = keyRow[i];
@@ -368,9 +378,10 @@
                         }
                     }
                 }
-                if (hotStreak >= 3) playerName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
-                else if (coldStreak >= 3) playerName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
-                html += `<td class="sticky-col col-name">${playerName}</td>`;
+                let displayName = playerName;
+                if (hotStreak >= 3) displayName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
+                else if (coldStreak >= 3) displayName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
+                html += `<td class="sticky-col col-name">${displayName}</td>`;
                 html += `<td class="sticky-col col-score">${row[1]}</td>`;
 
                 // Prize
@@ -378,19 +389,14 @@
                 let prizeIcon = isPrize ? '<i class="fas fa-money-bill-wave text-success"></i>' : '<span class="text-muted small">-</span>';
                 html += `<td class="text-center">${prizeIcon}</td>`;
 
-                // ANSWERS (LOCKED OR UNLOCKED)
+                // ANSWERS
                 row.forEach((cell, index) => {
                     if (index < 3) return; 
                     let cssClass = "";
                     let content = "";
-
                     if (!SHOW_PLAYER_PICKS) {
-                         // LOCKED
-                         if(cell && cell.trim() !== "") {
-                            content = '<i class="fas fa-lock text-secondary opacity-25"></i>';
-                         } else { content = "-"; }
+                         if(cell && cell.trim() !== "") { content = '<i class="fas fa-lock text-secondary opacity-25"></i>'; } else { content = "-"; }
                     } else {
-                        // UNLOCKED
                         content = cell ? cell : "";
                         const correctAns = keyRow[index];
                         if (correctAns && correctAns.trim() !== "") {
@@ -405,9 +411,22 @@
             html += `</tbody>`;
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
+
+            // --- CONFETTI LOGIC ---
+            // If the Spotlight user is Rank 1 AND the game is live...
+            if(spotlightRank === 1 && isGameLive) {
+                // Check if we already fired confetti this session to avoid infinite loop
+                if(!sessionStorage.getItem("confettiFired")) {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    sessionStorage.setItem("confettiFired", "true");
+                }
+            } else {
+                // Reset if they lose rank 1 so it can fire again if they regain it
+                sessionStorage.removeItem("confettiFired");
+            }
         }
 
-        // --- UPDATED SEARCH WITH PERSISTENCE ---
+        // Search Persistence
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
@@ -419,11 +438,6 @@
                     tr[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
                 }
             }
-        }
-
-        function toggleHighlight(row) {
-            if (row.classList.contains("table-warning")) { row.classList.remove("table-warning"); } 
-            else { document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning")); row.classList.add("table-warning"); }
         }
 
         window.onload = loadData;
