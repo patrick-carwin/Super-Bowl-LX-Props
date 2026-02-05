@@ -258,3 +258,446 @@
                 <div class="ticket-header">
                     <h4 class="m-0 fw-bold" id="ticketName">PLAYER NAME</h4>
                     <div class="d-flex justify-content-center gap-3 mt-1 align-items-center">
+                        <div class="small opacity-75" id="ticketRank">Rank #1</div>
+                    </div>
+                </div>
+                <div class="modal-body ticket-body" id="ticketList">
+                    </div>
+                <div class="ticket-footer">
+                    <div class="ticket-stats">
+                        <div class="stat-box"><span class="stat-val" id="ticketCurrent">0</span>Current</div>
+                        <div class="stat-box"><span class="stat-val text-danger" id="ticketGap">-0</span>Pts Behind</div>
+                        <div class="stat-box"><span class="stat-val text-muted" id="ticketMax">0</span>Max Possible</div>
+                    </div>
+                    <div id="ticketStatus" class="status-badge bg-secondary text-white">STATUS</div>
+                </div>
+                <div class="p-2 text-center">
+                    <button type="button" class="btn btn-sm btn-outline-dark w-100" data-bs-dismiss="modal">Close Ticket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+            <div class="modal-content shadow-lg" style="height: 80vh;">
+                <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body p-0 bg-light">
+                    <iframe id="chat-frame" src="" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+            data-bs-toggle="tooltip" data-bs-placement="left" title="Join the Challenge Chat!"
+            onclick="var myModal = new bootstrap.Modal(document.getElementById('chatModal')); myModal.show();"
+            style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1000;">
+        <i class="fas fa-comment-dots fa-lg"></i>
+    </button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl) })
+
+        // --- GLOBAL DATA VARS ---
+        var currentSortedPlayers = [];
+        var globalHeaders = [];
+        var globalKeyRow = [];
+        var globalWeights = []; // NEW: Stores the weights
+
+        window.onload = function() {
+            document.title = CONFIG.appTitle;
+            document.getElementById("mainTitle").innerHTML = '<span class="live-indicator"></span> ' + CONFIG.appTitle;
+            document.getElementById("pct1st").innerText = Math.round(CONFIG.payouts.first * 100);
+            document.getElementById("pct2nd").innerText = Math.round(CONFIG.payouts.second * 100);
+            document.getElementById("pct3rd").innerText = Math.round(CONFIG.payouts.third * 100);
+            if(CONFIG.chatUrl && CONFIG.chatUrl.length > 5) { document.getElementById("chat-frame").src = CONFIG.chatUrl; }
+            document.getElementById("buyInDisplay").innerText = CONFIG.buyIn;
+            document.getElementById("legStreak").innerText = CONFIG.thresholds.streak;
+            document.getElementById("legStreakIce").innerText = CONFIG.thresholds.streak;
+            document.getElementById("legWidow").innerText = CONFIG.thresholds.widow;
+            document.getElementById("legGimme").innerText = CONFIG.thresholds.gimme;
+            loadData();
+        };
+
+        function saveSearch() {
+            const val = document.getElementById("searchInput").value;
+            localStorage.setItem("propBetSearch", val);
+            filterTable();
+        }
+
+        function loadData() {
+            const loading = document.getElementById("loading");
+            const table = document.getElementById("prop-table");
+            if(table.innerHTML === "") loading.style.display = "block";
+
+            if (CONFIG.useTestData) {
+                Papa.parse(MOCK_CSV, {
+                    header: false, skipEmptyLines: true,
+                    complete: function(results) { processResults(results); },
+                    error: function(err) { alert("Mock Data Error"); }
+                });
+            } else {
+                Papa.parse(CONFIG.sheetUrl, {
+                    download: true, header: false,
+                    complete: function(results) { processResults(results); },
+                    error: function(err) { loading.innerText = "Error loading data. Check CSV Link."; }
+                });
+            }
+        }
+
+        function processResults(results) {
+            try { 
+                window.currentData = results.data; 
+                renderTable(results.data); 
+                const now = new Date(); 
+                document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
+                
+                const savedSearch = localStorage.getItem("propBetSearch");
+                if(savedSearch) {
+                    document.getElementById("searchInput").value = savedSearch;
+                    filterTable();
+                }
+            } 
+            catch (e) { console.error(e); alert("Error rendering table: " + e.message); }
+        }
+
+        function renderTable(data) {
+            const table = document.getElementById("prop-table");
+            let html = "";
+            // We now expect 5 meta rows (Header, Key, Weights, Details, Players)
+            if (!data || data.length < 4) return;
+
+            globalHeaders = data[0]; 
+            globalKeyRow = data[1];
+            globalWeights = data[2]; // <-- NEW ROW READ HERE
+            const detailRow = data[3]; 
+            const players = data.slice(4); 
+            
+            // --- COMMISH SIGNAL ---
+            const commishMsg = detailRow[0];
+            const signalBar = document.getElementById("commishSignal");
+            const lastSeenMsg = localStorage.getItem("lastCommishMsg");
+
+            if(commishMsg && commishMsg !== "DETAILS" && commishMsg.trim() !== "") {
+                if (commishMsg !== lastSeenMsg) {
+                    signalBar.innerText = commishMsg;
+                    signalBar.style.display = "block";
+                    localStorage.setItem("lastCommishMsg", commishMsg);
+                } else { signalBar.style.display = "none"; }
+            } else { signalBar.style.display = "none"; }
+
+            // --- PAYOUTS ---
+            let prizeCount = 0;
+            players.forEach(p => { if(p[2] && p[2].toString().toLowerCase().startsWith("y")) prizeCount++; });
+            let totalPot = prizeCount * CONFIG.buyIn;
+            document.getElementById("potTotal").innerText = "$" + totalPot;
+            document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * CONFIG.payouts.first);
+            document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * CONFIG.payouts.second);
+            document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * CONFIG.payouts.third);
+
+            // --- PROGRESS ---
+            let totalQuestions = globalHeaders.length > 3 ? globalHeaders.length - 3 : 1; 
+            let answeredQuestions = 0;
+            globalKeyRow.forEach((cell, index) => { if(index >= 3 && cell && cell !== "") answeredQuestions++; });
+            let progressPercent = (answeredQuestions / totalQuestions) * 100;
+            document.getElementById("gameProgress").style.width = progressPercent + "%";
+            const isGameLive = answeredQuestions > 0;
+
+            // --- SORTING ---
+            players.sort((a, b) => {
+                let scoreA = parseFloat(a[1]) || 0;
+                let scoreB = parseFloat(b[1]) || 0;
+                if (scoreB !== scoreA) return scoreB - scoreA;
+                if (scoreA === 0) {
+                    let nameA = a[0].toLowerCase();
+                    let nameB = b[0].toLowerCase();
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                }
+                return 0;
+            });
+            
+            currentSortedPlayers = players;
+
+            // --- TREND LOGIC ---
+            let prevRanks = JSON.parse(localStorage.getItem("propBetRanks") || "{}");
+            let currentRanks = {};
+
+            // --- SMART STATS ---
+            let columnStats = [];
+            globalHeaders.forEach((h, colIndex) => {
+                if(colIndex < 3) { columnStats.push(null); return; }
+                const correctAns = globalKeyRow[colIndex];
+                const isGraded = (correctAns && correctAns.trim() !== "");
+
+                if (CONFIG.showPicks) {
+                    if (isGraded) {
+                        let correctCount = 0; let totalCount = 0;
+                        players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
+                        let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                        let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
+                        let extraIcon = "";
+                        if (percent < CONFIG.thresholds.widow) { extraIcon = " 💀"; badgeColor = "bg-dark"; } 
+                        if (percent > CONFIG.thresholds.gimme) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; } 
+                        columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct${extraIcon}</span>`);
+                    } else {
+                        let counts = {}; let totalVotes = 0;
+                        players.forEach(player => {
+                            let ans = player[colIndex];
+                            if(ans && ans.trim() !== "") { counts[ans] = (counts[ans] || 0) + 1; totalVotes++; }
+                        });
+                        let topPick = ""; let topCount = 0;
+                        for(const [ans, count] of Object.entries(counts)) { if(count > topCount) { topCount = count; topPick = ans; } }
+                        if(totalVotes > 0) {
+                            let pct = Math.round((topCount / totalVotes) * 100);
+                            if(pct >= 30) {
+                                columnStats.push(`<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${pct}% picked <b>${topPick}</b></div>`);
+                            } else { columnStats.push(null); }
+                        } else { columnStats.push(null); }
+                    }
+                } else {
+                    columnStats.push(`<div class="mt-1 text-white-50 small"><i class="fas fa-lock" style="font-size: 0.7em;"></i></div>`);
+                }
+            });
+
+            // --- HEADERS ---
+            html += `<thead><tr><th class="sticky-col col-rank">#</th>`; 
+            globalHeaders.forEach((h, index) => {
+                let stickyClass = "";
+                if(index === 0) stickyClass = "sticky-col col-name"; 
+                if(index === 1) stickyClass = "sticky-col col-score";
+                let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
+                if(index === 2) formattedHeader = '<i class="fas fa-sack-dollar text-warning"></i>';
+                if(columnStats[index]) formattedHeader += `<br>${columnStats[index]}`;
+                html += `<th class="${stickyClass}">${formattedHeader}</th>`;
+            });
+            html += `</tr>`;
+
+            // --- KEY ROW ---
+            html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
+            globalKeyRow.forEach((cell, index) => {
+                let stickyClass = "";
+                if(index === 0) stickyClass = "sticky-col col-name";
+                if(index === 1) stickyClass = "sticky-col col-score";
+                let cellContent = cell ? cell : "-";
+                if (cell && detailRow[index] && detailRow[index].trim() !== "" && index > 2) {
+                    cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
+                }
+                html += `<td class="${stickyClass}">${cellContent}</td>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            // --- PLAYERS ---
+            players.forEach((row, rank) => {
+                if(!row[0]) return; 
+                let playerName = row[0];
+                let currentRankVal = rank + 1;
+                currentRanks[playerName] = currentRankVal;
+
+                html += `<tr onclick="showTicket(${rank})" class="player-row" style="cursor:pointer;">`;
+                
+                // Rank + Trend (ALWAYS ON IF HISTORY EXISTS)
+                let rankContent = currentRankVal;
+                let rankClass = "sticky-col col-rank fw-bold";
+                
+                if(prevRanks[playerName]) {
+                    let diff = prevRanks[playerName] - currentRankVal; 
+                    if(diff > 0) rankContent += ` <span class="text-success small" style="font-size:0.7em"><i class="fas fa-arrow-up"></i>${diff}</span>`;
+                    if(diff < 0) rankContent += ` <span class="text-danger small" style="font-size:0.7em"><i class="fas fa-arrow-down"></i>${Math.abs(diff)}</span>`;
+                }
+                
+                if (rank === 0) { 
+                    rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
+                } 
+                else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
+                
+                html += `<td class="${rankClass}">${rankContent}</td>`;
+
+                // Name & Streaks
+                let hotStreak = 0; let coldStreak = 0;
+                if(row.length > 3) {
+                    for (let i = row.length - 2; i >= 3; i--) { 
+                        const playerAnswer = row[i]; const correctAnswer = globalKeyRow[i];
+                        if (correctAnswer && correctAnswer !== "") { if (playerAnswer === correctAnswer) hotStreak++; else break; }
+                    }
+                    if (hotStreak === 0) {
+                        for (let i = row.length - 2; i >= 3; i--) {
+                            const playerAnswer = row[i]; const correctAnswer = globalKeyRow[i];
+                            if (correctAnswer && correctAnswer !== "") { if (playerAnswer !== correctAnswer) coldStreak++; else break; }
+                        }
+                    }
+                }
+                let displayName = playerName;
+                if (hotStreak >= CONFIG.thresholds.streak) displayName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
+                else if (coldStreak >= CONFIG.thresholds.streak) displayName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
+                html += `<td class="sticky-col col-name">${displayName}</td>`;
+                html += `<td class="sticky-col col-score">${row[1]}</td>`;
+
+                // Prize
+                let isPrize = row[2] && row[2].toString().toLowerCase().startsWith("y");
+                let prizeIcon = isPrize ? '<i class="fas fa-money-bill-wave text-success"></i>' : '<span class="text-muted small">-</span>';
+                html += `<td class="text-center">${prizeIcon}</td>`;
+
+                // ANSWERS
+                row.forEach((cell, index) => {
+                    if (index < 3) return; 
+                    let cssClass = "";
+                    let content = "";
+                    if (!CONFIG.showPicks) {
+                         if(cell && cell.trim() !== "") { content = '<i class="fas fa-lock text-secondary opacity-25"></i>'; } else { content = "-"; }
+                    } else {
+                        content = cell ? cell : "";
+                        const correctAns = globalKeyRow[index];
+                        if (correctAns && correctAns.trim() !== "") {
+                            if (content === correctAns) { cssClass += " correct-cell"; content += ` <i class="fas fa-check small text-success"></i>`; } 
+                            else { cssClass += " incorrect-cell"; }
+                        }
+                    }
+                    html += `<td class="${cssClass}">${content}</td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody>`;
+            table.innerHTML = html;
+            document.getElementById("loading").style.display = "none";
+
+            // Save ranks every time we render successfully
+            localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
+            
+            if(currentSortedPlayers[0] && currentSortedPlayers[0][1] > 0 && isGameLive) {
+                if(!sessionStorage.getItem("confettiFired")) {
+                    confetti({ particleCount: CONFIG.confettiCount, spread: 70, origin: { y: 0.6 } });
+                    sessionStorage.setItem("confettiFired", "true");
+                }
+            } else { sessionStorage.removeItem("confettiFired"); }
+        }
+
+        // --- SHOW GOLDEN TICKET ---
+        function showTicket(playerIndex) {
+            const player = currentSortedPlayers[playerIndex];
+            if(!player) return;
+
+            const currentScore = parseFloat(player[1] || 0);
+            document.getElementById("ticketName").innerText = player[0];
+            document.getElementById("ticketRank").innerText = "Rank #" + (playerIndex + 1);
+            
+            // The Gap
+            const leaderScore = parseFloat(currentSortedPlayers[0][1] || 0);
+            const gap = currentScore - leaderScore;
+            const gapEl = document.getElementById("ticketGap");
+            
+            gapEl.innerText = gap; 
+            gapEl.style.display = (playerIndex === 0) ? "none" : "block"; // Hide if leader
+
+            // Max Potential (UPDATED TO USE WEIGHTS)
+            let remainingPoints = 0;
+            for(let i=3; i<globalKeyRow.length; i++) {
+                // If header exists but key is empty, it's ungraded
+                if(globalHeaders[i] && (!globalKeyRow[i] || globalKeyRow[i].trim() === "")) {
+                    // Try to get weight from Row 3. If missing/invalid, assume 1 point.
+                    let w = parseFloat(globalWeights[i]);
+                    if(isNaN(w)) w = 1;
+                    remainingPoints += w;
+                }
+            }
+            const maxPotential = currentScore + remainingPoints;
+            document.getElementById("ticketCurrent").innerText = currentScore;
+            document.getElementById("ticketMax").innerText = maxPotential;
+
+            const statusEl = document.getElementById("ticketStatus");
+            const answeredCount = (globalHeaders.length - 3) - remainingPoints; 
+            
+            if (leaderScore > 0) {
+                if (maxPotential < leaderScore) {
+                    statusEl.innerHTML = "<i class='fas fa-times-circle'></i> MATHEMATICALLY ELIMINATED";
+                    statusEl.className = "status-badge bg-secondary text-white opacity-75";
+                } else {
+                    if(playerIndex === 0) {
+                        statusEl.innerHTML = "<i class='fas fa-crown'></i> CURRENT LEADER";
+                        statusEl.className = "status-badge bg-warning text-dark";
+                    } else {
+                        statusEl.innerHTML = "<i class='fas fa-check-circle'></i> IN THE HUNT";
+                        statusEl.className = "status-badge bg-success text-white";
+                    }
+                }
+            } else {
+                statusEl.innerHTML = "PRE-GAME / EARLY";
+                statusEl.className = "status-badge bg-light text-dark border";
+            }
+
+            let html = "";
+            for(let i=3; i<globalHeaders.length; i++) {
+                let question = globalHeaders[i] || "Question " + (i-2);
+                let pick = player[i] || "-";
+                let correct = globalKeyRow[i];
+                let isGraded = (correct && correct.trim() !== "");
+                let weight = globalWeights[i] || "1"; // Show weight if useful
+                
+                let icon = '<i class="fas fa-minus text-muted"></i>'; 
+                let rowClass = "";
+                
+                if(CONFIG.showPicks) {
+                    if(isGraded) {
+                        if(pick === correct) {
+                            icon = '<i class="fas fa-check text-success"></i>';
+                            rowClass = "bg-success bg-opacity-10";
+                        } else {
+                            icon = '<i class="fas fa-times text-danger"></i>';
+                            rowClass = "bg-danger bg-opacity-10";
+                        }
+                    } else if (pick && pick !== "") {
+                        icon = '<i class="far fa-circle text-secondary"></i>'; 
+                    }
+                } else {
+                    pick = "Locked";
+                    icon = '<i class="fas fa-lock text-muted"></i>';
+                }
+
+                html += `<div class="ticket-row ${rowClass}">
+                    <div class="small fw-bold text-wrap" style="width:50%">${question} <span class="text-muted fw-normal" style="font-size:0.75em">(${weight} pts)</span></div>
+                    <div class="text-end" style="width:30%; font-size:0.9em">${pick}</div>
+                    <div class="ticket-icon">${icon}</div>
+                </div>`;
+            }
+            document.getElementById("ticketList").innerHTML = html;
+            
+            var myModal = new bootstrap.Modal(document.getElementById('ticketModal'));
+            myModal.show();
+        }
+
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            const tr = document.getElementById("prop-table").getElementsByTagName("tr");
+            for (let i = 2; i < tr.length; i++) { 
+                let td = tr[i].querySelector(".col-name");
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    tr[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
+                }
+            }
+        }
+
+        // ==========================================
+        // 🧪 THE LABORATORY (MOCK DATA)
+        // Edit this text below to simulate game scenarios
+        // ==========================================
+        const MOCK_CSV = `
+PLAYER RANK,SCORE,PAID,Coin Toss,Natl Anthem,First Play,First TD Scorer,Team to Score First,Gatorade Color,MVP
+ANSWER KEY,MAX POINTS,-,Heads,Over,Run,McCaffrey,49ers,Red,Mahomes
+WEIGHTS (PTS),-,-,1,1,1,5,1,3,10
+DETAILS,0,-,5:05pm,,,No Fumbles yet,Red is popular,
+Steve (Admin),5,Y,Heads,Over,Run,Kelce,Chiefs,Blue,Mahomes
+Mike (The Rival),4,N,Heads,Under,Run,McCaffrey,49ers,Red,Purdy
+Sarah (Winner),5,Y,Heads,Over,Pass,McCaffrey,Chiefs,Orange,Mahomes
+Dave (Loser),0,Y,Tails,Under,Pass,Pacheco,Chiefs,Clear,Kelce
+Mom,2,Y,Heads,Over,Run,Kelce,49ers,Purple,Mahomes
+`;
+    </script>
+</body>
+</html>
