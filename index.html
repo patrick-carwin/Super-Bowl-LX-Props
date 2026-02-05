@@ -95,6 +95,8 @@
         .key-row td { 
             background-color: #212529 !important; color: #ffc107 !important; font-weight: bold;
             border-bottom: 4px solid #ffd700; text-align: center;
+            vertical-align: top; /* Align answer to top so details hang below */
+            padding-bottom: 8px;
         }
         /* Sticky Header Colors */
         thead tr:first-child .sticky-col { background-color: #212529; color: white; }
@@ -274,11 +276,12 @@
             const table = document.getElementById("prop-table");
             let html = "";
             
-            if (!data || data.length < 2) return;
+            if (!data || data.length < 3) return; // Need Headers, Key, Details, Players
 
             const headers = data[0]; 
-            const keyRow = data[1];  
-            const players = data.slice(2); 
+            const keyRow = data[1];
+            const detailRow = data[2]; // NEW: Grab the Detail Row (Row 3 in CSV)
+            const players = data.slice(3); // Players now start at index 3
 
             // --- PAYOUT LOGIC ---
             let prizeCount = 0;
@@ -289,10 +292,11 @@
             });
             
             let totalPot = prizeCount * BUY_IN;
+            // 70/20/10 Split
             document.getElementById("potTotal").innerText = "$" + totalPot;
-         document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * 0.7);
-document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
-document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
+            document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * 0.7);
+            document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
+            document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
 
 
             // --- PROGRESS BAR & GAME LIVE CHECK ---
@@ -353,7 +357,16 @@ document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name";
                 if(index === 1) stickyClass = "sticky-col col-score";
-                html += `<td class="${stickyClass}">${cell ? cell : "-"}</td>`;
+                
+                // --- NEW DETAIL LOGIC ---
+                // If there is an answer, check if there is a detail note for it
+                let cellContent = cell ? cell : "-";
+                if (cell && detailRow[index] && detailRow[index].trim() !== "") {
+                    // Append detail in small blue text
+                    cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
+                }
+
+                html += `<td class="${stickyClass}">${cellContent}</td>`;
             });
             html += `</tr></thead><tbody>`;
 
@@ -458,5 +471,3 @@ document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
     </script>
 </body>
 </html>
-
-
