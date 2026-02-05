@@ -10,34 +10,27 @@
             // 1. APP IDENTITY
             appTitle: "11th Annual Prop Bet Challenge",
             
-            // 2. DATA CONNECTIONS
-            // Paste your Published CSV link inside the quotes
+            // 2. DATA SOURCE CONTROL
+            // true = Use the "Laboratory" data at the bottom of this file (Safe Mode)
+            // false = Use the live Google Sheet URL below (Live Mode)
+            useTestData: true, 
+
+            // 3. LIVE DATA CONNECTIONS
             sheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv",
-            
-            // Paste your Cbox/Chat URL inside the quotes
             chatUrl: "https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk",
 
-            // 3. GAME STATE
-            // false = Pre-Game (Picks Hidden) | true = Game Time (Picks Visible)
+            // 4. GAME STATE
+            // false = Pre-Game (Picks Hidden, Ticket says "Locked")
+            // true  = Game Time (Picks Visible in Ticket and Table)
             showPicks: true,
 
-            // 4. ECONOMY
-            buyIn: 10,  // Entry fee in dollars
-            payouts: {
-                first: 0.70,  // 70%
-                second: 0.20, // 20%
-                third: 0.10   // 10%
-            },
+            // 5. ECONOMY
+            buyIn: 10,  
+            payouts: { first: 0.70, second: 0.20, third: 0.10 },
 
-            // 5. BADGES & DIFFICULTY
-            thresholds: {
-                gimme: 80,    // % Correct needed for "Gimme" Star (Easy)
-                widow: 20,    // % Correct needed for "Widowmaker" Skull (Hard)
-                streak: 3     // Consecutive answers needed for Fire/Ice
-            },
-
-            // 6. VISUALS
-            confettiCount: 150 // Number of particles for 1st place celebration
+            // 6. BADGES & DIFFICULTY
+            thresholds: { gimme: 80, widow: 20, streak: 3 },
+            confettiCount: 150 
         };
     </script>
     <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/American_football_icon_simple_flat.svg/512px-American_football_icon_simple_flat.svg.png">
@@ -55,7 +48,7 @@
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* COMMISH SIGNAL (The Announcement Bar) */
+        /* COMMISH SIGNAL */
         #commishSignal { 
             display: none; 
             background-color: #ffc107; 
@@ -314,21 +307,14 @@
 
         // ON LOAD: APPLY CONFIG SETTINGS
         window.onload = function() {
-            // 1. Set Titles
             document.title = CONFIG.appTitle;
             document.getElementById("mainTitle").innerHTML = '<span class="live-indicator"></span> ' + CONFIG.appTitle;
-
-            // 2. Set Payout Labels
             document.getElementById("pct1st").innerText = Math.round(CONFIG.payouts.first * 100);
             document.getElementById("pct2nd").innerText = Math.round(CONFIG.payouts.second * 100);
             document.getElementById("pct3rd").innerText = Math.round(CONFIG.payouts.third * 100);
 
-            // 3. Set Chat
-            if(CONFIG.chatUrl && CONFIG.chatUrl.length > 5) {
-                document.getElementById("chat-frame").src = CONFIG.chatUrl;
-            }
+            if(CONFIG.chatUrl && CONFIG.chatUrl.length > 5) { document.getElementById("chat-frame").src = CONFIG.chatUrl; }
 
-            // 4. Update Legend Text Dynamically
             document.getElementById("buyInDisplay").innerText = CONFIG.buyIn;
             document.getElementById("legStreak").innerText = CONFIG.thresholds.streak;
             document.getElementById("legStreakIce").innerText = CONFIG.thresholds.streak;
@@ -349,25 +335,40 @@
             const table = document.getElementById("prop-table");
             if(table.innerHTML === "") loading.style.display = "block";
 
-            Papa.parse(CONFIG.sheetUrl, {
-                download: true, header: false,
-                complete: function(results) { 
-                    try { 
-                        window.currentData = results.data; 
-                        renderTable(results.data); 
-                        const now = new Date(); 
-                        document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
-                        
-                        const savedSearch = localStorage.getItem("propBetSearch");
-                        if(savedSearch) {
-                            document.getElementById("searchInput").value = savedSearch;
-                            filterTable();
-                        }
-                    } 
-                    catch (e) { console.error(e); alert("Error rendering table: " + e.message); }
-                },
-                error: function(err) { loading.innerText = "Error loading data. Check CSV Link."; }
-            });
+            // CHECK: Use Lab Data or Real Data?
+            if (CONFIG.useTestData) {
+                // Parse the string at the bottom of file
+                Papa.parse(MOCK_CSV, {
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function(results) { processResults(results); },
+                    error: function(err) { alert("Mock Data Error"); }
+                });
+            } else {
+                // Fetch from Google
+                Papa.parse(CONFIG.sheetUrl, {
+                    download: true, header: false,
+                    complete: function(results) { processResults(results); },
+                    error: function(err) { loading.innerText = "Error loading data. Check CSV Link."; }
+                });
+            }
+        }
+
+        // Common processing function for both Live and Test data
+        function processResults(results) {
+            try { 
+                window.currentData = results.data; 
+                renderTable(results.data); 
+                const now = new Date(); 
+                document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
+                
+                const savedSearch = localStorage.getItem("propBetSearch");
+                if(savedSearch) {
+                    document.getElementById("searchInput").value = savedSearch;
+                    filterTable();
+                }
+            } 
+            catch (e) { console.error(e); alert("Error rendering table: " + e.message); }
         }
 
         function renderTable(data) {
@@ -497,12 +498,10 @@
             // --- PLAYERS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
-                
                 let playerName = row[0];
                 let currentRankVal = rank + 1;
                 currentRanks[playerName] = currentRankVal;
 
-                // CLEAN CLICK HANDLER (NO SPOTLIGHT)
                 html += `<tr onclick="showTicket(${rank})" class="player-row" style="cursor:pointer;">`;
                 
                 // Rank + Trend
@@ -570,36 +569,36 @@
             document.getElementById("loading").style.display = "none";
 
             if(isGameLive) localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
+            if(currentSortedPlayers[0] && currentSortedPlayers[0][1] > 0 && isGameLive) {
+                if(!sessionStorage.getItem("confettiFired")) {
+                    confetti({ particleCount: CONFIG.confettiCount, spread: 70, origin: { y: 0.6 } });
+                    sessionStorage.setItem("confettiFired", "true");
+                }
+            } else { sessionStorage.removeItem("confettiFired"); }
         }
 
-        // --- SHOW GOLDEN TICKET (REALITY CHECK UPGRADE) ---
+        // --- SHOW GOLDEN TICKET ---
         function showTicket(playerIndex) {
             const player = currentSortedPlayers[playerIndex];
             if(!player) return;
 
-            // 1. Basic Info
             const currentScore = parseFloat(player[1] || 0);
             document.getElementById("ticketName").innerText = player[0];
             document.getElementById("ticketRank").innerText = "Rank #" + (playerIndex + 1);
             
-            // 2. The Gap (Points Behind Leader)
             const leaderScore = parseFloat(currentSortedPlayers[0][1] || 0);
             const gap = currentScore - leaderScore;
             const gapEl = document.getElementById("ticketGap");
             if (playerIndex === 0) {
-                gapEl.style.display = "none"; // Leader doesn't see gap
+                gapEl.style.display = "none"; 
             } else {
-                gapEl.innerText = gap; // e.g. "-3"
+                gapEl.innerText = gap; 
                 gapEl.style.display = "block";
                 gapEl.className = "small badge bg-danger text-white";
             }
 
-            // 3. Max Potential (The Ceiling)
-            // Count remaining points (where globalKeyRow is empty)
             let remainingPoints = 0;
-            // Start at index 3 (Question 1)
             for(let i=3; i<globalKeyRow.length; i++) {
-                // If header exists but key is empty, it's ungraded
                 if(globalHeaders[i] && (!globalKeyRow[i] || globalKeyRow[i].trim() === "")) {
                     remainingPoints++;
                 }
@@ -608,9 +607,7 @@
             document.getElementById("ticketCurrent").innerText = currentScore;
             document.getElementById("ticketMax").innerText = maxPotential;
 
-            // 4. The Verdict (Status)
             const statusEl = document.getElementById("ticketStatus");
-            // If Game is Live...
             const answeredCount = (globalHeaders.length - 3) - remainingPoints;
             
             if (answeredCount > 0) {
@@ -627,12 +624,10 @@
                     }
                 }
             } else {
-                // Game hasn't really started or just started
                 statusEl.innerHTML = "PRE-GAME / EARLY";
                 statusEl.className = "status-badge bg-light text-dark border";
             }
 
-            // 5. Render Picks
             let html = "";
             for(let i=3; i<globalHeaders.length; i++) {
                 let question = globalHeaders[i] || "Question " + (i-2);
@@ -684,6 +679,21 @@
                 }
             }
         }
+
+        // ==========================================
+        // 🧪 THE LABORATORY (MOCK DATA)
+        // Edit this text below to simulate game scenarios
+        // ==========================================
+        const MOCK_CSV = `
+PLAYER RANK,SCORE,PAID,Coin Toss,Natl Anthem,First Play,First TD Scorer,Team to Score First,Gatorade Color,MVP
+ANSWER KEY,MAX POINTS,-,Heads,Over,Run,McCaffrey,49ers,Red,Mahomes
+DETAILS,0,-,5:05pm,,,No Fumbles yet,Red is popular,
+Steve (Admin),5,Y,Heads,Over,Run,Kelce,Chiefs,Blue,Mahomes
+Mike (The Rival),4,N,Heads,Under,Run,McCaffrey,49ers,Red,Purdy
+Sarah (Winner),5,Y,Heads,Over,Pass,McCaffrey,Chiefs,Orange,Mahomes
+Dave (Loser),0,Y,Tails,Under,Pass,Pacheco,Chiefs,Clear,Kelce
+Mom,2,Y,Heads,Over,Run,Kelce,49ers,Purple,Mahomes
+`;
     </script>
 </body>
 </html>
