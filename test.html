@@ -159,7 +159,7 @@
         // *** THE MAGIC SWITCH ***
         // FALSE = Pre-Game (Picks & Stats Hidden)
         // TRUE = Game Time (Picks & Stats Visible)
-        const SHOW_PLAYER_PICKS = true; 
+        const SHOW_PLAYER_PICKS = false; 
 
         // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -233,9 +233,12 @@
                         });
                         let topPick = ""; let topCount = 0;
                         for(const [ans, count] of Object.entries(counts)) { if(count > topCount) { topCount = count; topPick = ans; } }
+                        
+                        // ** UPDATED LOGIC FOR MULTI-CHOICE **
                         if(totalVotes > 0) {
                             let pct = Math.round((topCount / totalVotes) * 100);
-                            if(pct >= 51) {
+                            // THRESHOLD LOWERED TO 30% to catch plurality votes in multi-choice questions
+                            if(pct >= 30) {
                                 columnStats.push(`<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${pct}% picked <b>${topPick}</b></div>`);
                             } else { columnStats.push(null); }
                         } else { columnStats.push(null); }
