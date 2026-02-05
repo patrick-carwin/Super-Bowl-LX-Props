@@ -10,13 +10,36 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
-        /* Prevent bounce scroll on mobile */
+        /* BASE STYLES */
         html, body { height: 100%; overflow: hidden; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* --- HEADER --- */
+        /* HEADER */
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        /* COMMISH SIGNAL (The Announcement Bar) */
+        #commishSignal { 
+            display: none; 
+            background-color: #ffc107; 
+            color: #000; 
+            font-weight: bold; 
+            font-size: 1rem;       /* Slightly larger text */
+            padding: 10px;         /* More padding */
+            text-align: center; 
+            border-bottom: 1px solid #e0a800; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: flash 2s infinite; 
+        }
+        
+        /* Deep Flash Animation */
+        @keyframes flash { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.4; } /* Fades deep so movement is visible */
+            100% { opacity: 1; } 
+        }
 
         /* PAYOUT DASHBOARD */
         .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
@@ -29,44 +52,62 @@
         .live-indicator { display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b; border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-        /* --- SCROLLABLE WINDOW --- */
+        /* SCROLLABLE TABLE AREA */
         .main-content { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         .table-container { overflow: auto; background: white; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); height: 100%; }
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
-        /* --- BORDERS & STRIPING --- */
+        /* BORDERS */
         td, th { border-right: 1px solid #dee2e6; } td:last-child, th:last-child { border-right: none; }
-        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; } tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
         
-        /* --- STICKY LOGIC --- */
-        thead { position: sticky; top: 0; z-index: 50; } .sticky-col { position: sticky; z-index: 20; } thead .sticky-col { z-index: 60 !important; } 
+        /* STICKY LOGIC */
+        thead { position: sticky; top: 0; z-index: 50; } 
+        .sticky-col { position: sticky; z-index: 20; } 
+        thead .sticky-col { z-index: 60 !important; } 
 
-        /* --- COLUMN WIDTHS --- */
+        /* COLUMN WIDTHS */
         .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; } 
         .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; } 
         .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
 
-        /* --- STYLES --- */
-        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
-        .table-warning td { background-color: #fff3cd !important; } .table-warning .sticky-col { background-color: #fff3cd !important; }
+        /* STATUS COLORS */
+        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
+        .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
+        
+        /* RANKING HIGHLIGHTS */
         .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } 
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
         /* HEADER STYLING */
         thead tr:first-child th { background-color: #212529; color: white; vertical-align: bottom; text-align: center; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444; }
         .key-row td { background-color: #212529 !important; color: #ffc107 !important; font-weight: bold; border-bottom: 4px solid #ffd700; text-align: center; vertical-align: top; padding-bottom: 8px; }
-        thead tr:first-child .sticky-col { background-color: #212529; color: white; } thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
+        thead tr:first-child .sticky-col { background-color: #212529; color: white; } 
+        thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
-        tbody td { text-align: center; vertical-align: middle; padding: 8px; } .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
+        tbody td { text-align: center; vertical-align: middle; padding: 8px; } 
+        .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- MOBILE OPTIMIZATION --- */
+        /* --- ZEBRA STRIPING (Standard Grey) --- */
+        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
+        tbody tr:nth-of-type(even) .col-rank,
+        tbody tr:nth-of-type(even) .col-name,
+        tbody tr:nth-of-type(even) .col-score { background-color: #f2f4f6 !important; }
+
+        /* --- SPOTLIGHT STYLE (The Fix) --- */
+        /* Use high specificity to override zebra stripes */
+        tr.player-row.table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
+        tr.player-row.table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
+
+        /* MOBILE TWEAKS */
         @media (max-width: 768px) {
-            table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } 
-            .badge { font-size: 0.6em !important; white-space: normal; } #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
+            table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } 
+            .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } 
+            .badge { font-size: 0.6em !important; white-space: normal; } 
+            #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
             .payout-board { gap: 8px; padding: 5px; } .payout-item:not(:last-child):after { right: -4px; } .payout-label { font-size: 0.6em; } .payout-val { font-size: 0.85em; }
         }
 
-        /* --- LANDSCAPE --- */
+        /* LANDSCAPE TWEAKS */
         @media (max-height: 500px) and (orientation: landscape) {
             .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; }
             .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } 
@@ -75,6 +116,8 @@
     </style>
 </head>
 <body class="d-flex flex-column">
+
+    <div id="commishSignal"></div>
 
     <div class="header-container">
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge</h2>
@@ -134,11 +177,13 @@
                   <li class="mb-1"><i class="fas fa-money-bill-wave text-success" style="width:20px; text-align:center;"></i> Paid & Eligible for prize pool</li>
                   <li class="mb-1"><span class="badge bg-danger" style="width:20px;">🔥</span> 3+ Answer Streak</li>
                   <li class="mb-1"><span class="badge bg-info text-dark" style="width:20px;">🧊</span> 3+ Wrong Streak</li>
-                  <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard question! (<20% correct)</li>
-                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy question! (>90% correct)</li>
+                  <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard! (<20% correct)</li>
+                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (>80% correct)</li>
+                  <li class="mb-1"><small class="text-success"><i class="fas fa-arrow-up"></i></small> Rank moved up</li>
+                  <li class="mb-1"><small class="text-danger"><i class="fas fa-arrow-down"></i></small> Rank moved down</li>
               </ul>
               
-              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap "Share" > "Add to Home Screen" to use this like a real app!</p></div>
+              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap your row to "Spotlight" it. It stays highlighted even if you refresh!</p></div>
             </div>
             <div class="modal-footer p-1"><button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button></div>
           </div>
@@ -150,7 +195,7 @@
             <div class="modal-content shadow-lg" style="height: 80vh;">
                 <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body p-0 bg-light">
-                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
+                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
                 </div>
             </div>
         </div>
@@ -175,19 +220,29 @@
         const BUY_IN = 10; 
         
         // *** THE MAGIC SWITCH ***
-        // FALSE = Pre-Game (Picks & Stats Hidden)
-        // TRUE = Game Time (Picks & Stats Visible)
         const SHOW_PLAYER_PICKS = false; 
 
         // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl) })
 
-        // --- NEW: SEARCH PERSISTENCE ---
+        // --- SEARCH PERSISTENCE ---
         function saveSearch() {
             const val = document.getElementById("searchInput").value;
             localStorage.setItem("propBetSearch", val);
             filterTable();
+        }
+
+        // --- SPOTLIGHT PERSISTENCE ---
+        function setSpotlight(name) {
+            // Toggle
+            let current = localStorage.getItem("propBetSpotlight");
+            if (current === name) {
+                localStorage.removeItem("propBetSpotlight"); // Unselect
+            } else {
+                localStorage.setItem("propBetSpotlight", name); // Select
+            }
+            renderTable(window.currentData); // Re-render to apply class
         }
 
         function loadData() {
@@ -199,11 +254,12 @@
                 download: true, header: false,
                 complete: function(results) { 
                     try { 
+                        window.currentData = results.data; 
                         renderTable(results.data); 
                         const now = new Date(); 
                         document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
                         
-                        // RESTORE SEARCH FROM MEMORY
+                        // Restore Search
                         const savedSearch = localStorage.getItem("propBetSearch");
                         if(savedSearch) {
                             document.getElementById("searchInput").value = savedSearch;
@@ -225,6 +281,28 @@
             const keyRow = data[1];
             const detailRow = data[2]; 
             const players = data.slice(3); 
+            
+            // --- COMMISH SIGNAL (READ RECEIPT LOGIC) ---
+            const commishMsg = detailRow[0];
+            const signalBar = document.getElementById("commishSignal");
+            const lastSeenMsg = localStorage.getItem("lastCommishMsg"); // Check memory
+
+            if(commishMsg && commishMsg !== "DETAILS" && commishMsg.trim() !== "") {
+                // Only show if the message is NEW (different from the last one seen)
+                if (commishMsg !== lastSeenMsg) {
+                    signalBar.innerText = commishMsg;
+                    signalBar.style.display = "block";
+                    // Save this message as "Seen" so it doesn't show next refresh
+                    localStorage.setItem("lastCommishMsg", commishMsg);
+                } else {
+                    signalBar.style.display = "none";
+                }
+            } else {
+                signalBar.style.display = "none";
+            }
+            
+            const spotlightName = localStorage.getItem("propBetSpotlight");
+            let spotlightRank = -1; 
 
             // --- PAYOUTS ---
             let prizeCount = 0;
@@ -243,25 +321,23 @@
             document.getElementById("gameProgress").style.width = progressPercent + "%";
             const isGameLive = answeredQuestions > 0;
 
-            // --- SORTING LOGIC (Alphabetize if Score is 0) ---
+            // --- SORTING ---
             players.sort((a, b) => {
                 let scoreA = parseFloat(a[1]) || 0;
                 let scoreB = parseFloat(b[1]) || 0;
-                
-                // 1. Sort by Score Descending
                 if (scoreB !== scoreA) return scoreB - scoreA;
-
-                // 2. If Scores match and are 0 (Pre-game), sort Alphabetically
                 if (scoreA === 0) {
                     let nameA = a[0].toLowerCase();
                     let nameB = b[0].toLowerCase();
                     if (nameA < nameB) return -1;
                     if (nameA > nameB) return 1;
                 }
-                
-                // 3. If Scores match and > 0, leave order (respects Sheet tie-breaker)
                 return 0;
             });
+
+            // --- TREND LOGIC ---
+            let prevRanks = JSON.parse(localStorage.getItem("propBetRanks") || "{}");
+            let currentRanks = {};
 
             // --- SMART STATS ---
             let columnStats = [];
@@ -270,25 +346,18 @@
                 const correctAns = keyRow[colIndex];
                 const isGraded = (correctAns && correctAns.trim() !== "");
 
-                // ONLY SHOW STATS IF GAME STARTED
                 if (SHOW_PLAYER_PICKS) {
                     if (isGraded) {
-                        // MODE A: Graded -> Show % Correct
                         let correctCount = 0; let totalCount = 0;
                         players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
                         let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                        
-                        // NEW: WIDOWMAKER & GIMME BADGES
                         let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
                         let extraIcon = "";
-                        if (percent < 20) { extraIcon = " 💀"; badgeColor = "bg-dark"; } // Widowmaker
-                        if (percent > 90) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; } // Gimme
-                        
+                        if (percent < 20) { extraIcon = " 💀"; badgeColor = "bg-dark"; } 
+                        if (percent > 80) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; }
                         columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct${extraIcon}</span>`);
                     } else {
-                        // MODE B: Ungraded -> Show Consensus
-                        let counts = {};
-                        let totalVotes = 0;
+                        let counts = {}; let totalVotes = 0;
                         players.forEach(player => {
                             let ans = player[colIndex];
                             if(ans && ans.trim() !== "") { counts[ans] = (counts[ans] || 0) + 1; totalVotes++; }
@@ -303,12 +372,11 @@
                         } else { columnStats.push(null); }
                     }
                 } else {
-                    // MODE C: HIDDEN -> Show Lock Icon in header
                     columnStats.push(`<div class="mt-1 text-white-50 small"><i class="fas fa-lock" style="font-size: 0.7em;"></i></div>`);
                 }
             });
 
-            // --- BUILD TABLE HEADERS ---
+            // --- HEADERS ---
             html += `<thead><tr><th class="sticky-col col-rank">#</th>`; 
             headers.forEach((h, index) => {
                 let stickyClass = "";
@@ -325,42 +393,54 @@
             html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-name";
+                if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
-                
                 let cellContent = cell ? cell : "-";
-                // Detail Notes
-                if (cell && detailRow[index] && detailRow[index].trim() !== "") {
+                if (cell && detailRow[index] && detailRow[index].trim() !== "" && index > 2) {
                     cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
                 }
                 html += `<td class="${stickyClass}">${cellContent}</td>`;
             });
             html += `</tr></thead><tbody>`;
 
-            // --- PLAYER ROWS ---
+            // --- PLAYERS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
-                html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
                 
-                // Rank
-                let rankContent = rank + 1;
+                let playerName = row[0];
+                let isSpotlight = (playerName === spotlightName);
+                let currentRankVal = rank + 1;
+                
+                // Store Rank
+                currentRanks[playerName] = currentRankVal;
+
+                html += `<tr onclick="setSpotlight('${playerName.replace(/'/g, "\\'")}')" class="player-row ${isSpotlight ? 'table-warning' : ''}" style="cursor:pointer;">`;
+                
+                // Rank + Trend
+                let rankContent = currentRankVal;
                 let rankClass = "sticky-col col-rank fw-bold";
                 if (isGameLive) {
-                    if (rank === 0) { rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; } 
+                    if(prevRanks[playerName]) {
+                        let diff = prevRanks[playerName] - currentRankVal; 
+                        if(diff > 0) rankContent += ` <span class="text-success small" style="font-size:0.7em"><i class="fas fa-arrow-up"></i>${diff}</span>`;
+                        if(diff < 0) rankContent += ` <span class="text-danger small" style="font-size:0.7em"><i class="fas fa-arrow-down"></i>${Math.abs(diff)}</span>`;
+                    }
+
+                    if (rank === 0) { 
+                        rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
+                        if(isSpotlight) spotlightRank = 1;
+                    } 
                     else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
                 }
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
                 // Name & Streaks
-                let playerName = row[0]; 
                 let hotStreak = 0; let coldStreak = 0;
                 if(row.length > 3) {
-                    // Hot
                     for (let i = row.length - 2; i >= 3; i--) { 
                         const playerAnswer = row[i]; const correctAnswer = keyRow[i];
                         if (correctAnswer && correctAnswer !== "") { if (playerAnswer === correctAnswer) hotStreak++; else break; }
                     }
-                    // Cold
                     if (hotStreak === 0) {
                         for (let i = row.length - 2; i >= 3; i--) {
                             const playerAnswer = row[i]; const correctAnswer = keyRow[i];
@@ -368,9 +448,10 @@
                         }
                     }
                 }
-                if (hotStreak >= 3) playerName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
-                else if (coldStreak >= 3) playerName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
-                html += `<td class="sticky-col col-name">${playerName}</td>`;
+                let displayName = playerName;
+                if (hotStreak >= 3) displayName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
+                else if (coldStreak >= 3) displayName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
+                html += `<td class="sticky-col col-name">${displayName}</td>`;
                 html += `<td class="sticky-col col-score">${row[1]}</td>`;
 
                 // Prize
@@ -378,19 +459,14 @@
                 let prizeIcon = isPrize ? '<i class="fas fa-money-bill-wave text-success"></i>' : '<span class="text-muted small">-</span>';
                 html += `<td class="text-center">${prizeIcon}</td>`;
 
-                // ANSWERS (LOCKED OR UNLOCKED)
+                // ANSWERS
                 row.forEach((cell, index) => {
                     if (index < 3) return; 
                     let cssClass = "";
                     let content = "";
-
                     if (!SHOW_PLAYER_PICKS) {
-                         // LOCKED
-                         if(cell && cell.trim() !== "") {
-                            content = '<i class="fas fa-lock text-secondary opacity-25"></i>';
-                         } else { content = "-"; }
+                         if(cell && cell.trim() !== "") { content = '<i class="fas fa-lock text-secondary opacity-25"></i>'; } else { content = "-"; }
                     } else {
-                        // UNLOCKED
                         content = cell ? cell : "";
                         const correctAns = keyRow[index];
                         if (correctAns && correctAns.trim() !== "") {
@@ -405,9 +481,24 @@
             html += `</tbody>`;
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
+
+            // Save new ranks for next refresh
+            if(isGameLive) {
+                localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
+            }
+
+            // CONFETTI
+            if(spotlightRank === 1 && isGameLive) {
+                if(!sessionStorage.getItem("confettiFired")) {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    sessionStorage.setItem("confettiFired", "true");
+                }
+            } else {
+                sessionStorage.removeItem("confettiFired");
+            }
         }
 
-        // --- UPDATED SEARCH WITH PERSISTENCE ---
+        // Search Persistence
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
