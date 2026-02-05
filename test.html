@@ -4,73 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>11th Annual Prop Bet Challenge</title>
+    
     <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/American_football_icon_simple_flat.svg/512px-American_football_icon_simple_flat.svg.png">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
+        /* Prevent bounce scroll on mobile */
         html, body { height: 100%; overflow: hidden; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        /* --- HEADER --- */
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        /* PAYOUT DASHBOARD */
         .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
         .payout-item { display: flex; flex-direction: column; line-height: 1.1; position: relative; }
         .payout-item:not(:last-child):after { content: ""; position: absolute; right: -8px; top: 10%; height: 80%; border-right: 1px solid rgba(255,255,255,0.3); }
         .payout-label { font-size: 0.7em; text-transform: uppercase; opacity: 0.8; }
         .payout-val { font-weight: bold; color: #ffd700; }
+
+        /* PULSE ANIMATION */
         .live-indicator { display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b; border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
+
+        /* --- SCROLLABLE WINDOW --- */
         .main-content { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         .table-container { overflow: auto; background: white; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); height: 100%; }
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
+        
+        /* --- BORDERS & STRIPING --- */
         td, th { border-right: 1px solid #dee2e6; } td:last-child, th:last-child { border-right: none; }
         tbody tr:nth-of-type(even) td { background-color: #f2f4f6; } tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
+        
+        /* --- STICKY LOGIC --- */
         thead { position: sticky; top: 0; z-index: 50; } .sticky-col { position: sticky; z-index: 20; } thead .sticky-col { z-index: 60 !important; } 
-        .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; } .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; } .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
+
+        /* --- COLUMN WIDTHS --- */
+        .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; } 
+        .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; } 
+        .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
+
+        /* --- STYLES --- */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         .table-warning td { background-color: #fff3cd !important; } .table-warning .sticky-col { background-color: #fff3cd !important; }
-        .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
+        .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } 
+        .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
+
+        /* HEADER STYLING */
         thead tr:first-child th { background-color: #212529; color: white; vertical-align: bottom; text-align: center; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444; }
         .key-row td { background-color: #212529 !important; color: #ffc107 !important; font-weight: bold; border-bottom: 4px solid #ffd700; text-align: center; vertical-align: top; padding-bottom: 8px; }
         thead tr:first-child .sticky-col { background-color: #212529; color: white; } thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
+
         tbody td { text-align: center; vertical-align: middle; padding: 8px; } .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
-        @media (max-width: 768px) { table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } .badge { font-size: 0.6em !important; white-space: normal; } #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; } .payout-board { gap: 8px; padding: 5px; } .payout-item:not(:last-child):after { right: -4px; } .payout-label { font-size: 0.6em; } .payout-val { font-size: 0.85em; } }
-        @media (max-height: 500px) and (orientation: landscape) { .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; } .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } .header-container h2 { font-size: 1rem; margin: 0; text-align: left; } .controls-container { margin-top: 0 !important; } }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 768px) {
+            table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } 
+            .badge { font-size: 0.6em !important; white-space: normal; } #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
+            .payout-board { gap: 8px; padding: 5px; } .payout-item:not(:last-child):after { right: -4px; } .payout-label { font-size: 0.6em; } .payout-val { font-size: 0.85em; }
+        }
+
+        /* --- LANDSCAPE --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; }
+            .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } 
+            .header-container h2 { font-size: 1rem; margin: 0; text-align: left; } .controls-container { margin-top: 0 !important; }
+        }
     </style>
 </head>
 <body class="d-flex flex-column">
 
     <div class="header-container">
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge</h2>
+        
         <div class="payout-board">
             <div class="payout-item"><span class="payout-label">Total Pot</span><span class="payout-val" id="potTotal">$0</span></div>
             <div class="payout-item"><span class="payout-label">1st (70%)</span><span class="payout-val" id="pot1st">$0</span></div>
             <div class="payout-item"><span class="payout-label">2nd (20%)</span><span class="payout-val" id="pot2nd">$0</span></div>
             <div class="payout-item"><span class="payout-label">3rd (10%)</span><span class="payout-val" id="pot3rd">$0</span></div>
         </div>
-        <div class="progress-container progress bg-white bg-opacity-25 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;"><div id="gameProgress" class="progress-bar bg-warning" role="progressbar" style="width: 0%; border-radius: 10px;"></div></div>
+
+        <div class="progress-container progress bg-white bg-opacity-25 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
+            <div id="gameProgress" class="progress-bar bg-warning" role="progressbar" style="width: 0%; border-radius: 10px;"></div>
+        </div>
+
         <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.7rem; opacity: 0.8;">Waiting for signal...</p>
+
         <div class="controls-container d-flex justify-content-center gap-2 mt-2">
             <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;"><i class="fas fa-sync-alt"></i> Refresh</button>
             <input type="text" id="searchInput" onkeyup="filterTable()" class="form-control form-control-sm shadow-sm" style="max-width: 150px;" placeholder="Find Name...">
         </div>
-        <div class="rules-link text-center mt-2"><a href="#" data-bs-toggle="modal" data-bs-target="#rulesModal" class="text-white-50 text-decoration-none" style="font-size: 0.75rem;"><i class="fas fa-info-circle"></i> House Rules</a></div>
+        
+        <div class="rules-link text-center mt-2">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#rulesModal" class="text-white-50 text-decoration-none" style="font-size: 0.75rem;">
+                <i class="fas fa-info-circle"></i> House Rules
+            </a>
+        </div>
     </div>
+
     <div class="main-content">
         <div class="table-container">
-            <table class="table table-hover mb-0" id="prop-table"></table>
+            <table class="table table-hover mb-0" id="prop-table">
+                </table>
             <div id="loading" class="loading-msg">Loading data from the field...</div>
         </div>
     </div>
-    
+
     <div class="modal fade" id="rulesModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered p-3">
           <div class="modal-content shadow-lg">
             <div class="modal-header bg-dark text-white"><h5 class="modal-title fs-6"><i class="fas fa-gavel text-warning"></i> Official Rules</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
             <div class="modal-body text-dark" style="white-space: normal; font-size: 0.9rem;">
-              <h6 class="fw-bold">1. Grading</h6><p class="small text-muted mb-2">All results graded based on live broadcast verdict.</p>
-              <h6 class="fw-bold">2. Tie Breaker</h6><p class="small text-muted mb-2">Closest to total game score (over/under doesn't matter).</p>
-              <h6 class="fw-bold">3. The Prize Pool</h6><p class="small text-muted mb-2">Optional $10 buy-in.</p>
+              <h6 class="fw-bold">1. Grading</h6><p class="small text-muted mb-2">All results are graded based on the live broadcast verdict. Admin decision is final.</p>
+              <h6 class="fw-bold">2. Tie Breaker</h6><p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over.</p>
+              <h6 class="fw-bold">3. The Prize Pool</h6><p class="small text-muted mb-2">Optional $10 buy-in. Only players with the <i class="fas fa-money-bill-wave text-success"></i> icon are eligible for cash prizes.</p>
               <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap "Share" > "Add to Home Screen" to use this like a real app!</p></div>
             </div>
+            <div class="modal-footer p-1"><button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button></div>
           </div>
         </div>
     </div>
@@ -85,20 +137,29 @@
             </div>
         </div>
     </div>
-    <button type="button" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" data-bs-placement="left" title="Join the Challenge Chat!" onclick="var myModal = new bootstrap.Modal(document.getElementById('chatModal')); myModal.show();" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1000;"><i class="fas fa-comment-dots fa-lg"></i></button>
+
+    <button type="button" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+            data-bs-toggle="tooltip" data-bs-placement="left" title="Join the Challenge Chat!"
+            onclick="var myModal = new bootstrap.Modal(document.getElementById('chatModal')); myModal.show();"
+            style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1000;">
+        <i class="fas fa-comment-dots fa-lg"></i>
+    </button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        
         // --- 1. CONFIGURATION ---
+        
+        // PASTE YOUR CSV LINK HERE
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
+        
         const BUY_IN = 10; 
         
         // *** THE MAGIC SWITCH ***
-        // Set this to FALSE right now. 
-        // Set it to TRUE on Sunday at 6:30 PM.
-        const SHOW_PLAYER_PICKS = true; 
+        // FALSE = Pre-Game (Picks & Stats Hidden)
+        // TRUE = Game Time (Picks & Stats Visible)
+        const SHOW_PLAYER_PICKS = false; 
 
         // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -108,6 +169,7 @@
             const loading = document.getElementById("loading");
             const table = document.getElementById("prop-table");
             if(table.innerHTML === "") loading.style.display = "block";
+
             Papa.parse(sheetUrl, {
                 download: true, header: false,
                 complete: function(results) { 
@@ -128,7 +190,7 @@
             const detailRow = data[2]; 
             const players = data.slice(3); 
 
-            // STATS & PAYOUTS
+            // --- PAYOUTS ---
             let prizeCount = 0;
             players.forEach(p => { if(p[2] && p[2].toString().toLowerCase().startsWith("y")) prizeCount++; });
             let totalPot = prizeCount * BUY_IN;
@@ -137,6 +199,7 @@
             document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
             document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
 
+            // --- PROGRESS ---
             let totalQuestions = headers.length > 3 ? headers.length - 3 : 1; 
             let answeredQuestions = 0;
             keyRow.forEach((cell, index) => { if(index >= 3 && cell && cell !== "") answeredQuestions++; });
@@ -144,41 +207,46 @@
             document.getElementById("gameProgress").style.width = progressPercent + "%";
             const isGameLive = answeredQuestions > 0;
 
-            // --- SMART STATS LOGIC ---
+            // --- SMART STATS ---
             let columnStats = [];
             headers.forEach((h, colIndex) => {
                 if(colIndex < 3) { columnStats.push(null); return; }
                 const correctAns = keyRow[colIndex];
                 const isGraded = (correctAns && correctAns.trim() !== "");
 
-                if (isGraded) {
-                    let correctCount = 0; let totalCount = 0;
-                    players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
-                    let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                    let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
-                    columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct</span>`);
-                } else {
-                    // CROWD CONSENSUS (Works even if SHOW_PLAYER_PICKS is false because we read the raw data)
-                    let counts = {};
-                    let totalVotes = 0;
-                    players.forEach(player => {
-                        let ans = player[colIndex];
-                        if(ans && ans.trim() !== "") { counts[ans] = (counts[ans] || 0) + 1; totalVotes++; }
-                    });
-                    let topPick = ""; let topCount = 0;
-                    for(const [ans, count] of Object.entries(counts)) { if(count > topCount) { topCount = count; topPick = ans; } }
-
-                    if(totalVotes > 0) {
-                        let pct = Math.round((topCount / totalVotes) * 100);
-                        // Show consensus if we have ANY votes
-                        if(pct > 0) {
-                            columnStats.push(`<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${pct}% picked <b>${topPick}</b></div>`);
+                // ONLY SHOW STATS IF GAME STARTED
+                if (SHOW_PLAYER_PICKS) {
+                    if (isGraded) {
+                        // MODE A: Graded -> Show % Correct
+                        let correctCount = 0; let totalCount = 0;
+                        players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
+                        let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                        let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
+                        columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct</span>`);
+                    } else {
+                        // MODE B: Ungraded -> Show Consensus
+                        let counts = {};
+                        let totalVotes = 0;
+                        players.forEach(player => {
+                            let ans = player[colIndex];
+                            if(ans && ans.trim() !== "") { counts[ans] = (counts[ans] || 0) + 1; totalVotes++; }
+                        });
+                        let topPick = ""; let topCount = 0;
+                        for(const [ans, count] of Object.entries(counts)) { if(count > topCount) { topCount = count; topPick = ans; } }
+                        if(totalVotes > 0) {
+                            let pct = Math.round((topCount / totalVotes) * 100);
+                            if(pct >= 51) {
+                                columnStats.push(`<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${pct}% picked <b>${topPick}</b></div>`);
+                            } else { columnStats.push(null); }
                         } else { columnStats.push(null); }
-                    } else { columnStats.push(null); }
+                    }
+                } else {
+                    // MODE C: HIDDEN -> Show Lock Icon in header
+                    columnStats.push(`<div class="mt-1 text-white-50 small"><i class="fas fa-lock" style="font-size: 0.7em;"></i></div>`);
                 }
             });
 
-            // --- BUILD TABLE ---
+            // --- BUILD TABLE HEADERS ---
             html += `<thead><tr><th class="sticky-col col-rank">#</th>`; 
             headers.forEach((h, index) => {
                 let stickyClass = "";
@@ -191,13 +259,15 @@
             });
             html += `</tr>`;
 
-            // KEY ROW
+            // --- KEY ROW ---
             html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name";
                 if(index === 1) stickyClass = "sticky-col col-score";
+                
                 let cellContent = cell ? cell : "-";
+                // Detail Notes
                 if (cell && detailRow[index] && detailRow[index].trim() !== "") {
                     cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
                 }
@@ -205,7 +275,7 @@
             });
             html += `</tr></thead><tbody>`;
 
-            // PLAYER ROWS
+            // --- PLAYER ROWS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
@@ -223,10 +293,12 @@
                 let playerName = row[0]; 
                 let hotStreak = 0; let coldStreak = 0;
                 if(row.length > 3) {
+                    // Hot
                     for (let i = row.length - 2; i >= 3; i--) { 
                         const playerAnswer = row[i]; const correctAnswer = keyRow[i];
                         if (correctAnswer && correctAnswer !== "") { if (playerAnswer === correctAnswer) hotStreak++; else break; }
                     }
+                    // Cold
                     if (hotStreak === 0) {
                         for (let i = row.length - 2; i >= 3; i--) {
                             const playerAnswer = row[i]; const correctAnswer = keyRow[i];
@@ -239,28 +311,24 @@
                 html += `<td class="sticky-col col-name">${playerName}</td>`;
                 html += `<td class="sticky-col col-score">${row[1]}</td>`;
 
-                // Prize Icon
+                // Prize
                 let isPrize = row[2] && row[2].toString().toLowerCase().startsWith("y");
                 let prizeIcon = isPrize ? '<i class="fas fa-money-bill-wave text-success"></i>' : '<span class="text-muted small">-</span>';
                 html += `<td class="text-center">${prizeIcon}</td>`;
 
-                // ANSWERS (THE MASKING LOGIC)
+                // ANSWERS (LOCKED OR UNLOCKED)
                 row.forEach((cell, index) => {
                     if (index < 3) return; 
                     let cssClass = "";
                     let content = "";
 
-                    // IF SHOW_PLAYER_PICKS IS FALSE -> SHOW PADLOCK
                     if (!SHOW_PLAYER_PICKS) {
-                        // Show content if it's empty? No, show lock if they have an answer, dash if not? 
-                        // Let's just show lock for simplicity if there is data.
+                         // LOCKED
                          if(cell && cell.trim() !== "") {
                             content = '<i class="fas fa-lock text-secondary opacity-25"></i>';
-                         } else {
-                             content = "-";
-                         }
+                         } else { content = "-"; }
                     } else {
-                        // SHOW REAL ANSWERS
+                        // UNLOCKED
                         content = cell ? cell : "";
                         const correctAns = keyRow[index];
                         if (correctAns && correctAns.trim() !== "") {
@@ -276,6 +344,7 @@
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
         }
+
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
@@ -288,10 +357,12 @@
                 }
             }
         }
+
         function toggleHighlight(row) {
             if (row.classList.contains("table-warning")) { row.classList.remove("table-warning"); } 
             else { document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning")); row.classList.add("table-warning"); }
         }
+
         window.onload = loadData;
     </script>
 </body>
