@@ -15,43 +15,19 @@
         html, body { height: 100%; overflow: hidden; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         /* --- HEADER --- */
-        .header-container { 
-            background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%);
-            color: white; 
-            padding: 10px 15px; 
-            text-align: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            display: flex; flex-direction: column; justify-content: center;
-            z-index: 100; position: relative; flex-shrink: 0; 
-        }
-        
+        .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
         /* PAYOUT DASHBOARD */
-        .payout-board {
-            display: flex; justify-content: center; gap: 15px;
-            background: rgba(0,0,0,0.3); border-radius: 8px;
-            padding: 5px 10px; margin-top: 5px; margin-bottom: 5px;
-            font-size: 0.85rem;
-        }
+        .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
         .payout-item { display: flex; flex-direction: column; line-height: 1.1; position: relative; }
-        .payout-item:not(:last-child):after {
-            content: ""; position: absolute; right: -8px; top: 10%; height: 80%; 
-            border-right: 1px solid rgba(255,255,255,0.3);
-        }
+        .payout-item:not(:last-child):after { content: ""; position: absolute; right: -8px; top: 10%; height: 80%; border-right: 1px solid rgba(255,255,255,0.3); }
         .payout-label { font-size: 0.7em; text-transform: uppercase; opacity: 0.8; }
         .payout-val { font-weight: bold; color: #ffd700; }
 
         /* PULSE ANIMATION */
-        .live-indicator {
-            display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b;
-            border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); }
-        }
+        .live-indicator { display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b; border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
         /* --- SCROLLABLE WINDOW --- */
         .main-content { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
@@ -59,76 +35,42 @@
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
         /* --- BORDERS & STRIPING --- */
-        /* Vertical Borders for ALL cells */
-        td, th { border-right: 1px solid #dee2e6; }
-        td:last-child, th:last-child { border-right: none; }
-
-        /* Zebra Striping (Solid Color Fix) */
-        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
-        tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
-
+        td, th { border-right: 1px solid #dee2e6; } td:last-child, th:last-child { border-right: none; }
+        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; } tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
+        
         /* --- STICKY LOGIC --- */
-        thead { position: sticky; top: 0; z-index: 50; }
-        .sticky-col { position: sticky; z-index: 20; } 
-        thead .sticky-col { z-index: 60 !important; } 
+        thead { position: sticky; top: 0; z-index: 50; } .sticky-col { position: sticky; z-index: 20; } thead .sticky-col { z-index: 60 !important; } 
 
         /* --- COLUMN WIDTHS --- */
-        .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; }
-        .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; }
+        .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; } 
+        .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; } 
         .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
 
         /* --- STYLES --- */
-        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
-        .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
-        
-        .table-warning td { background-color: #fff3cd !important; }
-        .table-warning .sticky-col { background-color: #fff3cd !important; }
-
-        .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; }
+        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
+        .table-warning td { background-color: #fff3cd !important; } .table-warning .sticky-col { background-color: #fff3cd !important; }
+        .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } 
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
         /* HEADER STYLING */
-        thead tr:first-child th { 
-            background-color: #212529; color: white; vertical-align: bottom; text-align: center;
-            padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444;
-        }
-        .key-row td { 
-            background-color: #212529 !important; color: #ffc107 !important; font-weight: bold;
-            border-bottom: 4px solid #ffd700; text-align: center;
-            vertical-align: top; /* Align answer to top so details hang below */
-            padding-bottom: 8px;
-        }
-        /* Sticky Header Colors */
-        thead tr:first-child .sticky-col { background-color: #212529; color: white; }
-        thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
+        thead tr:first-child th { background-color: #212529; color: white; vertical-align: bottom; text-align: center; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444; }
+        .key-row td { background-color: #212529 !important; color: #ffc107 !important; font-weight: bold; border-bottom: 4px solid #ffd700; text-align: center; vertical-align: top; padding-bottom: 8px; }
+        thead tr:first-child .sticky-col { background-color: #212529; color: white; } thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
-        tbody td { text-align: center; vertical-align: middle; padding: 8px; }
-        .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
+        tbody td { text-align: center; vertical-align: middle; padding: 8px; } .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
         /* --- MOBILE OPTIMIZATION --- */
         @media (max-width: 768px) {
-            table { font-size: 0.8rem; }
-            .header-container h2 { font-size: 1.1rem; }
-            .col-rank { min-width: 30px; } 
-            .col-name { left: 30px; min-width: 110px; padding-left: 5px; } 
-            .col-score { left: 140px; min-width: 50px; } 
-            .badge { font-size: 0.6em !important; white-space: normal; }
-            #searchInput::placeholder { color: transparent; }
-            #searchInput { width: 100px !important; }
-            
-            /* Payout Bar Tweaks for Mobile */
-            .payout-board { gap: 8px; padding: 5px; }
-            .payout-item:not(:last-child):after { right: -4px; } 
-            .payout-label { font-size: 0.6em; }
-            .payout-val { font-size: 0.85em; }
+            table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } 
+            .badge { font-size: 0.6em !important; white-space: normal; } #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
+            .payout-board { gap: 8px; padding: 5px; } .payout-item:not(:last-child):after { right: -4px; } .payout-label { font-size: 0.6em; } .payout-val { font-size: 0.85em; }
         }
 
         /* --- LANDSCAPE --- */
         @media (max-height: 500px) and (orientation: landscape) {
             .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; }
             .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } 
-            .header-container h2 { font-size: 1rem; margin: 0; text-align: left; }
-            .controls-container { margin-top: 0 !important; }
+            .header-container h2 { font-size: 1rem; margin: 0; text-align: left; } .controls-container { margin-top: 0 !important; }
         }
     </style>
 </head>
@@ -138,22 +80,10 @@
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge</h2>
         
         <div class="payout-board">
-            <div class="payout-item">
-                <span class="payout-label">Total Pot</span>
-                <span class="payout-val" id="potTotal">$0</span>
-            </div>
-            <div class="payout-item">
-                <span class="payout-label">1st (70%)</span>
-                <span class="payout-val" id="pot1st">$0</span>
-            </div>
-            <div class="payout-item">
-                <span class="payout-label">2nd (20%)</span>
-                <span class="payout-val" id="pot2nd">$0</span>
-            </div>
-            <div class="payout-item">
-                <span class="payout-label">3rd (10%)</span>
-                <span class="payout-val" id="pot3rd">$0</span>
-            </div>
+            <div class="payout-item"><span class="payout-label">Total Pot</span><span class="payout-val" id="potTotal">$0</span></div>
+            <div class="payout-item"><span class="payout-label">1st (70%)</span><span class="payout-val" id="pot1st">$0</span></div>
+            <div class="payout-item"><span class="payout-label">2nd (20%)</span><span class="payout-val" id="pot2nd">$0</span></div>
+            <div class="payout-item"><span class="payout-label">3rd (10%)</span><span class="payout-val" id="pot3rd">$0</span></div>
         </div>
 
         <div class="progress-container progress bg-white bg-opacity-25 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
@@ -163,12 +93,8 @@
         <p id="lastUpdated" class="m-0 text-white-50" style="font-size: 0.7rem; opacity: 0.8;">Waiting for signal...</p>
 
         <div class="controls-container d-flex justify-content-center gap-2 mt-2">
-            <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;">
-                <i class="fas fa-sync-alt"></i> Refresh
-            </button>
-            <input type="text" id="searchInput" onkeyup="filterTable()" 
-                   class="form-control form-control-sm shadow-sm" 
-                   style="max-width: 150px;" placeholder="Find Name...">
+            <button onclick="loadData()" class="btn btn-warning btn-sm fw-bold shadow-sm" style="font-size: 0.8rem;"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <input type="text" id="searchInput" onkeyup="filterTable()" class="form-control form-control-sm shadow-sm" style="max-width: 150px;" placeholder="Find Name...">
         </div>
         
         <div class="rules-link text-center mt-2">
@@ -189,26 +115,14 @@
     <div class="modal fade" id="rulesModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered p-3">
           <div class="modal-content shadow-lg">
-            <div class="modal-header bg-dark text-white">
-              <h5 class="modal-title fs-6"><i class="fas fa-gavel text-warning"></i> Official Rules</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+            <div class="modal-header bg-dark text-white"><h5 class="modal-title fs-6"><i class="fas fa-gavel text-warning"></i> Official Rules</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
             <div class="modal-body text-dark" style="white-space: normal; font-size: 0.9rem;">
-              <h6 class="fw-bold">1. Grading</h6>
-              <p class="small text-muted mb-2">All results are graded based on the live broadcast verdict. Admin decision is final.</p>
-              <h6 class="fw-bold">2. Tie Breaker</h6>
-              <p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over.</p>
-              <h6 class="fw-bold">3. The Prize Pool</h6>
-              <p class="small text-muted mb-2">Optional $10 buy-in. Only players with the <i class="fas fa-money-bill-wave text-success"></i> icon are eligible for cash prizes.</p>
-              
-              <div class="alert alert-secondary mt-3 mb-0 p-2">
-                <p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p>
-                <p class="small m-0">Tap "Share" > "Add to Home Screen" to use this like a real app!</p>
-              </div>
+              <h6 class="fw-bold">1. Grading</h6><p class="small text-muted mb-2">All results are graded based on the live broadcast verdict. Admin decision is final.</p>
+              <h6 class="fw-bold">2. Tie Breaker</h6><p class="small text-muted mb-2">Ties are broken by the closest guess to the total game score. You can go over.</p>
+              <h6 class="fw-bold">3. The Prize Pool</h6><p class="small text-muted mb-2">Optional $10 buy-in. Only players with the <i class="fas fa-money-bill-wave text-success"></i> icon are eligible for cash prizes.</p>
+              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap "Share" > "Add to Home Screen" to use this like a real app!</p></div>
             </div>
-            <div class="modal-footer p-1">
-              <button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button>
-            </div>
+            <div class="modal-footer p-1"><button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button></div>
           </div>
         </div>
     </div>
@@ -216,14 +130,9 @@
     <div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
             <div class="modal-content shadow-lg" style="height: 80vh;">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body p-0 bg-light">
-                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" 
-                            width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto">
-                    </iframe>	
+                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
                 </div>
             </div>
         </div>
@@ -240,33 +149,32 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // --- CONFIGURATION ---
+        // --- 1. CONFIGURATION ---
+        
+        // PASTE YOUR CSV LINK HERE
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
+        
         const BUY_IN = 10; 
+        
+        // *** THE MAGIC SWITCH ***
+        // FALSE = Pre-Game (Picks & Stats Hidden)
+        // TRUE = Game Time (Picks & Stats Visible)
+        const SHOW_PLAYER_PICKS = false; 
 
-        // --- 1. INITIALIZE TOOLTIPS ---
+        // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl) })
 
         function loadData() {
             const loading = document.getElementById("loading");
             const table = document.getElementById("prop-table");
-            
             if(table.innerHTML === "") loading.style.display = "block";
 
             Papa.parse(sheetUrl, {
                 download: true, header: false,
                 complete: function(results) { 
-                    try {
-                        renderTable(results.data);
-                        const now = new Date();
-                        document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
-                    } catch (e) {
-                        console.error(e);
-                        alert("Error rendering table: " + e.message);
-                    }
+                    try { renderTable(results.data); const now = new Date(); document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString(); } 
+                    catch (e) { console.error(e); alert("Error rendering table: " + e.message); }
                 },
                 error: function(err) { loading.innerText = "Error loading data."; }
             });
@@ -275,171 +183,163 @@
         function renderTable(data) {
             const table = document.getElementById("prop-table");
             let html = "";
-            
-            if (!data || data.length < 3) return; // Need Headers, Key, Details, Players
+            if (!data || data.length < 3) return;
 
             const headers = data[0]; 
             const keyRow = data[1];
-            const detailRow = data[2]; // NEW: Grab the Detail Row (Row 3 in CSV)
-            const players = data.slice(3); // Players now start at index 3
+            const detailRow = data[2]; 
+            const players = data.slice(3); 
 
-            // --- PAYOUT LOGIC ---
+            // --- PAYOUTS ---
             let prizeCount = 0;
-            players.forEach(p => {
-                if(p[2] && p[2].toString().toLowerCase().startsWith("y")) {
-                    prizeCount++;
-                }
-            });
-            
+            players.forEach(p => { if(p[2] && p[2].toString().toLowerCase().startsWith("y")) prizeCount++; });
             let totalPot = prizeCount * BUY_IN;
-            // 70/20/10 Split
             document.getElementById("potTotal").innerText = "$" + totalPot;
             document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * 0.7);
             document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
             document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
 
-
-            // --- PROGRESS BAR & GAME LIVE CHECK ---
+            // --- PROGRESS ---
             let totalQuestions = headers.length > 3 ? headers.length - 3 : 1; 
             let answeredQuestions = 0;
-            keyRow.forEach((cell, index) => {
-                if(index >= 3 && cell && cell !== "") answeredQuestions++;
-            });
+            keyRow.forEach((cell, index) => { if(index >= 3 && cell && cell !== "") answeredQuestions++; });
             let progressPercent = (answeredQuestions / totalQuestions) * 100;
             document.getElementById("gameProgress").style.width = progressPercent + "%";
-            
             const isGameLive = answeredQuestions > 0;
 
-            // --- STATS LOGIC ---
-            let stats = [];
+            // --- SMART STATS ---
+            let columnStats = [];
             headers.forEach((h, colIndex) => {
-                if(colIndex < 3) { stats.push(null); return; } 
+                if(colIndex < 3) { columnStats.push(null); return; }
                 const correctAns = keyRow[colIndex];
-                if(!correctAns || correctAns === "") { stats.push(null); return; }
+                const isGraded = (correctAns && correctAns.trim() !== "");
 
-                let correctCount = 0; let totalCount = 0;
-                players.forEach(player => {
-                    if(player[0]) {
-                        totalCount++;
-                        if(player[colIndex] === correctAns) correctCount++;
+                // ONLY SHOW STATS IF GAME STARTED
+                if (SHOW_PLAYER_PICKS) {
+                    if (isGraded) {
+                        // MODE A: Graded -> Show % Correct
+                        let correctCount = 0; let totalCount = 0;
+                        players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
+                        let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                        let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
+                        columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct</span>`);
+                    } else {
+                        // MODE B: Ungraded -> Show Consensus
+                        let counts = {};
+                        let totalVotes = 0;
+                        players.forEach(player => {
+                            let ans = player[colIndex];
+                            if(ans && ans.trim() !== "") { counts[ans] = (counts[ans] || 0) + 1; totalVotes++; }
+                        });
+                        let topPick = ""; let topCount = 0;
+                        for(const [ans, count] of Object.entries(counts)) { if(count > topCount) { topCount = count; topPick = ans; } }
+                        if(totalVotes > 0) {
+                            let pct = Math.round((topCount / totalVotes) * 100);
+                            if(pct >= 51) {
+                                columnStats.push(`<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${pct}% picked <b>${topPick}</b></div>`);
+                            } else { columnStats.push(null); }
+                        } else { columnStats.push(null); }
                     }
-                });
-                let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                stats.push(percent + "% Correct"); 
+                } else {
+                    // MODE C: HIDDEN -> Show Lock Icon in header
+                    columnStats.push(`<div class="mt-1 text-white-50 small"><i class="fas fa-lock" style="font-size: 0.7em;"></i></div>`);
+                }
             });
 
-            // --- HEADERS ---
-            html += `<thead><tr>`;
-            html += `<th class="sticky-col col-rank">#</th>`; 
-
+            // --- BUILD TABLE HEADERS ---
+            html += `<thead><tr><th class="sticky-col col-rank">#</th>`; 
             headers.forEach((h, index) => {
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
-                
                 let formattedHeader = h ? h.replace(" (", "<br><span class='small fw-normal text-white-50'>(") + "</span>" : "";
-                
                 if(index === 2) formattedHeader = '<i class="fas fa-sack-dollar text-warning"></i>';
-
-                if(stats[index]) {
-                    let badgeColor = parseInt(stats[index]) > 50 ? 'bg-success' : 'bg-secondary';
-                    formattedHeader += `<br><span class="badge ${badgeColor} mt-1">${stats[index]}</span>`;
-                }
+                if(columnStats[index]) formattedHeader += `<br>${columnStats[index]}`;
                 html += `<th class="${stickyClass}">${formattedHeader}</th>`;
             });
             html += `</tr>`;
 
             // --- KEY ROW ---
-            html += `<tr class="key-row">`;
-            html += `<td class="sticky-col col-rank">-</td>`; 
-            
+            html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name";
                 if(index === 1) stickyClass = "sticky-col col-score";
                 
-                // --- NEW DETAIL LOGIC ---
-                // If there is an answer, check if there is a detail note for it
                 let cellContent = cell ? cell : "-";
+                // Detail Notes
                 if (cell && detailRow[index] && detailRow[index].trim() !== "") {
-                    // Append detail in small blue text
                     cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
                 }
-
                 html += `<td class="${stickyClass}">${cellContent}</td>`;
             });
             html += `</tr></thead><tbody>`;
 
-            // --- PLAYERS ---
+            // --- PLAYER ROWS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
-
                 html += `<tr onclick="toggleHighlight(this)" class="player-row">`;
                 
-                // 1. RANK LOGIC
+                // Rank
                 let rankContent = rank + 1;
                 let rankClass = "sticky-col col-rank fw-bold";
-                
                 if (isGameLive) {
-                    if (rank === 0) { 
-                        rankContent = `<i class="fas fa-crown text-dark"></i>`; 
-                        rankClass += " rank-1-cell"; 
-                    } else if (rank === players.length - 1) {
-                        rankContent = `<i class="fas fa-snowflake text-primary"></i>`;
-                        rankClass += " rank-last-cell";
-                    }
+                    if (rank === 0) { rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; } 
+                    else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
                 }
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
-                // 2. NAME & STREAK LOGIC
+                // Name & Streaks
                 let playerName = row[0]; 
-                
-                // STREAK: Ignore last col (Tie Breaker) using length - 2
-                let currentStreak = 0;
+                let hotStreak = 0; let coldStreak = 0;
                 if(row.length > 3) {
+                    // Hot
                     for (let i = row.length - 2; i >= 3; i--) { 
-                        const playerAnswer = row[i];
-                        const correctAnswer = keyRow[i];
-                        if (correctAnswer && correctAnswer !== "") {
-                            if (playerAnswer === correctAnswer) {
-                                currentStreak++;
-                            } else { break; }
+                        const playerAnswer = row[i]; const correctAnswer = keyRow[i];
+                        if (correctAnswer && correctAnswer !== "") { if (playerAnswer === correctAnswer) hotStreak++; else break; }
+                    }
+                    // Cold
+                    if (hotStreak === 0) {
+                        for (let i = row.length - 2; i >= 3; i--) {
+                            const playerAnswer = row[i]; const correctAnswer = keyRow[i];
+                            if (correctAnswer && correctAnswer !== "") { if (playerAnswer !== correctAnswer) coldStreak++; else break; }
                         }
                     }
                 }
-                if (currentStreak >= 3) {
-                    playerName += ` <span class="badge bg-danger ms-1">🔥 ${currentStreak}</span>`;
-                }
-                
+                if (hotStreak >= 3) playerName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
+                else if (coldStreak >= 3) playerName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
                 html += `<td class="sticky-col col-name">${playerName}</td>`;
                 html += `<td class="sticky-col col-score">${row[1]}</td>`;
 
-                // 3. PRIZE COLUMN (Index 2)
+                // Prize
                 let isPrize = row[2] && row[2].toString().toLowerCase().startsWith("y");
                 let prizeIcon = isPrize ? '<i class="fas fa-money-bill-wave text-success"></i>' : '<span class="text-muted small">-</span>';
                 html += `<td class="text-center">${prizeIcon}</td>`;
 
-                // 4. ANSWERS (Start at Index 3)
+                // ANSWERS (LOCKED OR UNLOCKED)
                 row.forEach((cell, index) => {
                     if (index < 3) return; 
-
                     let cssClass = "";
-                    let content = cell ? cell : "";
+                    let content = "";
 
-                    const correctAns = keyRow[index];
-                    if (correctAns && correctAns.trim() !== "") {
-                        if (content === correctAns) {
-                            cssClass += " correct-cell"; 
-                            content += ` <i class="fas fa-check small text-success"></i>`;
-                        } else {
-                            cssClass += " incorrect-cell"; 
+                    if (!SHOW_PLAYER_PICKS) {
+                         // LOCKED
+                         if(cell && cell.trim() !== "") {
+                            content = '<i class="fas fa-lock text-secondary opacity-25"></i>';
+                         } else { content = "-"; }
+                    } else {
+                        // UNLOCKED
+                        content = cell ? cell : "";
+                        const correctAns = keyRow[index];
+                        if (correctAns && correctAns.trim() !== "") {
+                            if (content === correctAns) { cssClass += " correct-cell"; content += ` <i class="fas fa-check small text-success"></i>`; } 
+                            else { cssClass += " incorrect-cell"; }
                         }
                     }
                     html += `<td class="${cssClass}">${content}</td>`;
                 });
                 html += `</tr>`;
             });
-
             html += `</tbody>`;
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
@@ -459,12 +359,8 @@
         }
 
         function toggleHighlight(row) {
-            if (row.classList.contains("table-warning")) {
-                row.classList.remove("table-warning");
-            } else {
-                document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning"));
-                row.classList.add("table-warning");
-            }
+            if (row.classList.contains("table-warning")) { row.classList.remove("table-warning"); } 
+            else { document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning")); row.classList.add("table-warning"); }
         }
 
         window.onload = loadData;
