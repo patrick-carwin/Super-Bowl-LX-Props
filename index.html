@@ -3,8 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>11th Annual Prop Bet Challenge</title>
+    <title>Prop Bet Challenge</title>
     
+    <script>
+        const CONFIG = {
+            // 1. APP IDENTITY
+            appTitle: "11th Annual Prop Bet Challenge",
+            
+            // 2. DATA SOURCE CONTROL
+            // true = Use the "Laboratory" data at the bottom of this file (Safe Mode)
+            // false = Use the live Google Sheet URL below (Live Mode)
+            useTestData: false, 
+
+            // 3. LIVE DATA CONNECTIONS
+            // Paste your Google Sheet Web_Matrix CSV Link here
+            sheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv",
+            
+            // Paste your Cbox/Chat URL here
+            chatUrl: "https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk",
+
+            // 4. GAME STATE
+            // false = Pre-Game (Picks Hidden in Ticket)
+            // true  = Game Time (Picks Visible in Ticket)
+            showPicks: false,
+
+            // 5. ECONOMY
+            buyIn: 10,  
+            payouts: { first: 0.70, second: 0.20, third: 0.10 },
+
+            // 6. BADGES & DIFFICULTY
+            thresholds: { gimme: 80, widow: 20, streak: 3 },
+            confettiCount: 150 
+        };
+    </script>
     <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/American_football_icon_simple_flat.svg/512px-American_football_icon_simple_flat.svg.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -20,26 +51,20 @@
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* COMMISH SIGNAL (The Announcement Bar) */
+        /* COMMISH SIGNAL */
         #commishSignal { 
             display: none; 
             background-color: #ffc107; 
             color: #000; 
             font-weight: bold; 
-            font-size: 1rem;       /* Slightly larger text */
-            padding: 10px;         /* More padding */
+            font-size: 1rem;       
+            padding: 10px;         
             text-align: center; 
             border-bottom: 1px solid #e0a800; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             animation: flash 2s infinite; 
         }
-        
-        /* Deep Flash Animation */
-        @keyframes flash { 
-            0% { opacity: 1; } 
-            50% { opacity: 0.4; } /* Fades deep so movement is visible */
-            100% { opacity: 1; } 
-        }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
         /* PAYOUT DASHBOARD */
         .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
@@ -73,8 +98,6 @@
         /* STATUS COLORS */
         .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
         .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
-        
-        /* RANKING HIGHLIGHTS */
         .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } 
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
@@ -87,16 +110,59 @@
         tbody td { text-align: center; vertical-align: middle; padding: 8px; } 
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- ZEBRA STRIPING (Standard Grey) --- */
+        /* --- ZEBRA STRIPING --- */
         tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
         tbody tr:nth-of-type(even) .col-rank,
         tbody tr:nth-of-type(even) .col-name,
         tbody tr:nth-of-type(even) .col-score { background-color: #f2f4f6 !important; }
 
-        /* --- SPOTLIGHT STYLE (The Fix) --- */
-        /* Use high specificity to override zebra stripes */
-        tr.player-row.table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
-        tr.player-row.table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
+        /* --- GOLDEN TICKET MODAL STYLES --- */
+        .ticket-modal-content {
+            background-color: #fff;
+            background-image: radial-gradient(#f0f0f0 15%, transparent 16%), radial-gradient(#f0f0f0 15%, transparent 16%);
+            background-size: 10px 10px;
+            background-position: 0 0, 5px 5px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: none;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace; 
+        }
+        .ticket-header {
+            background: #212529;
+            color: #fff;
+            border-radius: 10px 10px 0 0;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px dashed #999;
+        }
+        .ticket-body {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .ticket-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+            font-size: 0.9rem;
+        }
+        .ticket-footer {
+            background: #eee;
+            border-radius: 0 0 10px 10px;
+            padding: 10px;
+            text-align: center;
+            border-top: 2px dashed #999;
+        }
+        .ticket-icon { width: 20px; text-align: center; }
+
+        /* TICKET STATS GRID */
+        .ticket-stats { display: flex; justify-content: space-between; gap: 5px; font-size: 0.75rem; color: #555; margin-bottom: 5px; }
+        .stat-box { background: white; border: 1px solid #ccc; padding: 5px; border-radius: 4px; flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-val { font-weight: bold; font-size: 1.1em; color: #000; display: block; line-height: 1.1; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-top: 5px; width: 100%; }
 
         /* MOBILE TWEAKS */
         @media (max-width: 768px) {
@@ -120,13 +186,13 @@
     <div id="commishSignal"></div>
 
     <div class="header-container">
-        <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge</h2>
+        <h2 class="m-0" id="mainTitle"><span class="live-indicator"></span> Loading...</h2>
         
         <div class="payout-board">
             <div class="payout-item"><span class="payout-label">Total Pot</span><span class="payout-val" id="potTotal">$0</span></div>
-            <div class="payout-item"><span class="payout-label">1st (70%)</span><span class="payout-val" id="pot1st">$0</span></div>
-            <div class="payout-item"><span class="payout-label">2nd (20%)</span><span class="payout-val" id="pot2nd">$0</span></div>
-            <div class="payout-item"><span class="payout-label">3rd (10%)</span><span class="payout-val" id="pot3rd">$0</span></div>
+            <div class="payout-item"><span class="payout-label">1st (<span id="pct1st"></span>%)</span><span class="payout-val" id="pot1st">$0</span></div>
+            <div class="payout-item"><span class="payout-label">2nd (<span id="pct2nd"></span>%)</span><span class="payout-val" id="pot2nd">$0</span></div>
+            <div class="payout-item"><span class="payout-label">3rd (<span id="pct3rd"></span>%)</span><span class="payout-val" id="pot3rd">$0</span></div>
         </div>
 
         <div class="progress-container progress bg-white bg-opacity-25 mb-1" style="height: 6px; width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px;">
@@ -160,33 +226,55 @@
           <div class="modal-content shadow-lg">
             <div class="modal-header bg-dark text-white"><h5 class="modal-title fs-6"><i class="fas fa-gavel text-warning"></i> Rules & Legend</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
             <div class="modal-body text-dark" style="white-space: normal; font-size: 0.9rem;">
-              
               <h6 class="fw-bold text-uppercase small text-muted">The Rules</h6>
               <div class="mb-3">
                   <p class="small mb-1"><span class="fw-bold">1. Grading:</span> Admin verdict is final.</p>
                   <p class="small mb-1"><span class="fw-bold">2. Ties:</span> Broken by closest total score guess.</p>
-                  <p class="small mb-0"><span class="fw-bold">3. Pot:</span> 100% Payout ($10 buy-in).</p>
+                  <p class="small mb-0"><span class="fw-bold">3. Pot:</span> 100% Payout ($<span id="buyInDisplay">10</span> buy-in).</p>
               </div>
-
               <hr class="my-2">
-
               <h6 class="fw-bold text-uppercase small text-muted mt-2">Icon Legend</h6>
               <ul class="list-unstyled small mb-0">
                   <li class="mb-1"><i class="fas fa-crown text-dark" style="width:20px; text-align:center;"></i> 1st Place</li>
                   <li class="mb-1"><i class="fas fa-snowflake text-primary" style="width:20px; text-align:center;"></i> Last Place</li>
                   <li class="mb-1"><i class="fas fa-money-bill-wave text-success" style="width:20px; text-align:center;"></i> Paid & Eligible for prize pool</li>
-                  <li class="mb-1"><span class="badge bg-danger" style="width:20px;">🔥</span> 3+ Answer Streak</li>
-                  <li class="mb-1"><span class="badge bg-info text-dark" style="width:20px;">🧊</span> 3+ Wrong Streak</li>
-                  <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard! (<20% correct)</li>
-                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (>80% correct)</li>
+                  <li class="mb-1"><span class="badge bg-danger" style="width:20px;">🔥</span> <span id="legStreak">3</span>+ Answer Streak</li>
+                  <li class="mb-1"><span class="badge bg-info text-dark" style="width:20px;">🧊</span> <span id="legStreakIce">3</span>+ Wrong Streak</li>
+                  <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard! (<span id="legWidow">20</span>% correct)</li>
+                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (><span id="legGimme">80</span>% correct)</li>
                   <li class="mb-1"><small class="text-success"><i class="fas fa-arrow-up"></i></small> Rank moved up</li>
                   <li class="mb-1"><small class="text-danger"><i class="fas fa-arrow-down"></i></small> Rank moved down</li>
               </ul>
-              
-              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap your row to "Spotlight" it. It stays highlighted even if you refresh!</p></div>
+              <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap your row to see your <b>Golden Ticket</b> (Full Picks & Stats).</p></div>
             </div>
             <div class="modal-footer p-1"><button type="button" class="btn btn-light btn-sm w-100" data-bs-dismiss="modal">Close</button></div>
           </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ticketModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content ticket-modal-content">
+                <div class="ticket-header">
+                    <h4 class="m-0 fw-bold" id="ticketName">PLAYER NAME</h4>
+                    <div class="d-flex justify-content-center gap-3 mt-1 align-items-center">
+                        <div class="small opacity-75" id="ticketRank">Rank #1</div>
+                    </div>
+                </div>
+                <div class="modal-body ticket-body" id="ticketList">
+                    </div>
+                <div class="ticket-footer">
+                    <div class="ticket-stats">
+                        <div class="stat-box"><span class="stat-val" id="ticketCurrent">0</span>Current</div>
+                        <div class="stat-box"><span class="stat-val text-danger" id="ticketGap">-0</span>Pts Behind</div>
+                        <div class="stat-box"><span class="stat-val text-muted" id="ticketMax">0</span>Max Possible</div>
+                    </div>
+                    <div id="ticketStatus" class="status-badge bg-secondary text-white">STATUS</div>
+                </div>
+                <div class="p-2 text-center">
+                    <button type="button" class="btn btn-sm btn-outline-dark w-100" data-bs-dismiss="modal">Close Ticket</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -195,7 +283,7 @@
             <div class="modal-content shadow-lg" style="height: 80vh;">
                 <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body p-0 bg-light">
-                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
+                    <iframe id="chat-frame" src="" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
                 </div>
             </div>
         </div>
@@ -212,37 +300,34 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // --- 1. CONFIGURATION ---
-        
-        // PASTE YOUR CSV LINK HERE
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnJhX-sCrEbK84FJi1MOIV7v-PDjYDBw5c8Adpqugt9zb4H1PGW42ziWcQhAi1jA/pub?gid=1689955040&single=true&output=csv"; 
-        
-        const BUY_IN = 10; 
-        
-        // *** THE MAGIC SWITCH ***
-        const SHOW_PLAYER_PICKS = false; 
-
-        // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl) })
 
-        // --- SEARCH PERSISTENCE ---
+        // --- GLOBAL DATA VARS ---
+        var currentSortedPlayers = [];
+        var globalHeaders = [];
+        var globalKeyRow = [];
+        var globalWeights = []; // NEW: Stores the weights
+
+        window.onload = function() {
+            document.title = CONFIG.appTitle;
+            document.getElementById("mainTitle").innerHTML = '<span class="live-indicator"></span> ' + CONFIG.appTitle;
+            document.getElementById("pct1st").innerText = Math.round(CONFIG.payouts.first * 100);
+            document.getElementById("pct2nd").innerText = Math.round(CONFIG.payouts.second * 100);
+            document.getElementById("pct3rd").innerText = Math.round(CONFIG.payouts.third * 100);
+            if(CONFIG.chatUrl && CONFIG.chatUrl.length > 5) { document.getElementById("chat-frame").src = CONFIG.chatUrl; }
+            document.getElementById("buyInDisplay").innerText = CONFIG.buyIn;
+            document.getElementById("legStreak").innerText = CONFIG.thresholds.streak;
+            document.getElementById("legStreakIce").innerText = CONFIG.thresholds.streak;
+            document.getElementById("legWidow").innerText = CONFIG.thresholds.widow;
+            document.getElementById("legGimme").innerText = CONFIG.thresholds.gimme;
+            loadData();
+        };
+
         function saveSearch() {
             const val = document.getElementById("searchInput").value;
             localStorage.setItem("propBetSearch", val);
             filterTable();
-        }
-
-        // --- SPOTLIGHT PERSISTENCE ---
-        function setSpotlight(name) {
-            // Toggle
-            let current = localStorage.getItem("propBetSpotlight");
-            if (current === name) {
-                localStorage.removeItem("propBetSpotlight"); // Unselect
-            } else {
-                localStorage.setItem("propBetSpotlight", name); // Select
-            }
-            renderTable(window.currentData); // Re-render to apply class
         }
 
         function loadData() {
@@ -250,73 +335,75 @@
             const table = document.getElementById("prop-table");
             if(table.innerHTML === "") loading.style.display = "block";
 
-            Papa.parse(sheetUrl, {
-                download: true, header: false,
-                complete: function(results) { 
-                    try { 
-                        window.currentData = results.data; 
-                        renderTable(results.data); 
-                        const now = new Date(); 
-                        document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
-                        
-                        // Restore Search
-                        const savedSearch = localStorage.getItem("propBetSearch");
-                        if(savedSearch) {
-                            document.getElementById("searchInput").value = savedSearch;
-                            filterTable();
-                        }
-                    } 
-                    catch (e) { console.error(e); alert("Error rendering table: " + e.message); }
-                },
-                error: function(err) { loading.innerText = "Error loading data."; }
-            });
+            if (CONFIG.useTestData) {
+                Papa.parse(MOCK_CSV, {
+                    header: false, skipEmptyLines: true,
+                    complete: function(results) { processResults(results); },
+                    error: function(err) { alert("Mock Data Error"); }
+                });
+            } else {
+                Papa.parse(CONFIG.sheetUrl, {
+                    download: true, header: false,
+                    complete: function(results) { processResults(results); },
+                    error: function(err) { loading.innerText = "Error loading data. Check CSV Link."; }
+                });
+            }
+        }
+
+        function processResults(results) {
+            try { 
+                window.currentData = results.data; 
+                renderTable(results.data); 
+                const now = new Date(); 
+                document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
+                
+                const savedSearch = localStorage.getItem("propBetSearch");
+                if(savedSearch) {
+                    document.getElementById("searchInput").value = savedSearch;
+                    filterTable();
+                }
+            } 
+            catch (e) { console.error(e); alert("Error rendering table: " + e.message); }
         }
 
         function renderTable(data) {
             const table = document.getElementById("prop-table");
             let html = "";
-            if (!data || data.length < 3) return;
+            // We now expect 5 meta rows (Header, Key, Weights, Details, Players)
+            if (!data || data.length < 4) return;
 
-            const headers = data[0]; 
-            const keyRow = data[1];
-            const detailRow = data[2]; 
-            const players = data.slice(3); 
+            globalHeaders = data[0]; 
+            globalKeyRow = data[1];
+            globalWeights = data[2]; // <-- NEW ROW READ HERE
+            const detailRow = data[3]; 
+            const players = data.slice(4); 
             
-            // --- COMMISH SIGNAL (READ RECEIPT LOGIC) ---
+            // --- COMMISH SIGNAL ---
             const commishMsg = detailRow[0];
             const signalBar = document.getElementById("commishSignal");
-            const lastSeenMsg = localStorage.getItem("lastCommishMsg"); // Check memory
+            const lastSeenMsg = localStorage.getItem("lastCommishMsg");
 
             if(commishMsg && commishMsg !== "DETAILS" && commishMsg.trim() !== "") {
-                // Only show if the message is NEW (different from the last one seen)
                 if (commishMsg !== lastSeenMsg) {
                     signalBar.innerText = commishMsg;
                     signalBar.style.display = "block";
-                    // Save this message as "Seen" so it doesn't show next refresh
                     localStorage.setItem("lastCommishMsg", commishMsg);
-                } else {
-                    signalBar.style.display = "none";
-                }
-            } else {
-                signalBar.style.display = "none";
-            }
-            
-            const spotlightName = localStorage.getItem("propBetSpotlight");
-            let spotlightRank = -1; 
+                } else { signalBar.style.display = "none"; }
+            } else { signalBar.style.display = "none"; }
 
             // --- PAYOUTS ---
             let prizeCount = 0;
             players.forEach(p => { if(p[2] && p[2].toString().toLowerCase().startsWith("y")) prizeCount++; });
-            let totalPot = prizeCount * BUY_IN;
+            let totalPot = prizeCount * CONFIG.buyIn;
             document.getElementById("potTotal").innerText = "$" + totalPot;
-            document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * 0.7);
-            document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * 0.2);
-            document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * 0.1);
+            document.getElementById("pot1st").innerText = "$" + Math.round(totalPot * CONFIG.payouts.first);
+            document.getElementById("pot2nd").innerText = "$" + Math.round(totalPot * CONFIG.payouts.second);
+            document.getElementById("pot3rd").innerText = "$" + Math.round(totalPot * CONFIG.payouts.third);
 
             // --- PROGRESS ---
-            let totalQuestions = headers.length > 3 ? headers.length - 3 : 1; 
+            let totalQuestions = globalHeaders.length > 3 ? globalHeaders.length - 3 : 1; 
             let answeredQuestions = 0;
-            keyRow.forEach((cell, index) => { if(index >= 3 && cell && cell !== "") answeredQuestions++; });
+            globalKeyRow.forEach((cell, index) => { if(index >= 3 && cell && cell !== "") answeredQuestions++; });
             let progressPercent = (answeredQuestions / totalQuestions) * 100;
             document.getElementById("gameProgress").style.width = progressPercent + "%";
             const isGameLive = answeredQuestions > 0;
@@ -334,6 +421,8 @@
                 }
                 return 0;
             });
+            
+            currentSortedPlayers = players;
 
             // --- TREND LOGIC ---
             let prevRanks = JSON.parse(localStorage.getItem("propBetRanks") || "{}");
@@ -341,20 +430,20 @@
 
             // --- SMART STATS ---
             let columnStats = [];
-            headers.forEach((h, colIndex) => {
+            globalHeaders.forEach((h, colIndex) => {
                 if(colIndex < 3) { columnStats.push(null); return; }
-                const correctAns = keyRow[colIndex];
+                const correctAns = globalKeyRow[colIndex];
                 const isGraded = (correctAns && correctAns.trim() !== "");
 
-                if (SHOW_PLAYER_PICKS) {
+                if (CONFIG.showPicks) {
                     if (isGraded) {
                         let correctCount = 0; let totalCount = 0;
                         players.forEach(player => { if(player[0]) { totalCount++; if(player[colIndex] === correctAns) correctCount++; } });
                         let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
                         let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
                         let extraIcon = "";
-                        if (percent < 20) { extraIcon = " 💀"; badgeColor = "bg-dark"; } 
-                        if (percent > 80) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; }
+                        if (percent < CONFIG.thresholds.widow) { extraIcon = " 💀"; badgeColor = "bg-dark"; } 
+                        if (percent > CONFIG.thresholds.gimme) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; } 
                         columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct${extraIcon}</span>`);
                     } else {
                         let counts = {}; let totalVotes = 0;
@@ -378,7 +467,7 @@
 
             // --- HEADERS ---
             html += `<thead><tr><th class="sticky-col col-rank">#</th>`; 
-            headers.forEach((h, index) => {
+            globalHeaders.forEach((h, index) => {
                 let stickyClass = "";
                 if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
@@ -391,9 +480,9 @@
 
             // --- KEY ROW ---
             html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
-            keyRow.forEach((cell, index) => {
+            globalKeyRow.forEach((cell, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-name"; 
+                if(index === 0) stickyClass = "sticky-col col-name";
                 if(index === 1) stickyClass = "sticky-col col-score";
                 let cellContent = cell ? cell : "-";
                 if (cell && detailRow[index] && detailRow[index].trim() !== "" && index > 2) {
@@ -406,51 +495,46 @@
             // --- PLAYERS ---
             players.forEach((row, rank) => {
                 if(!row[0]) return; 
-                
                 let playerName = row[0];
-                let isSpotlight = (playerName === spotlightName);
                 let currentRankVal = rank + 1;
-                
-                // Store Rank
                 currentRanks[playerName] = currentRankVal;
 
-                html += `<tr onclick="setSpotlight('${playerName.replace(/'/g, "\\'")}')" class="player-row ${isSpotlight ? 'table-warning' : ''}" style="cursor:pointer;">`;
+                html += `<tr onclick="showTicket(${rank})" class="player-row" style="cursor:pointer;">`;
                 
-                // Rank + Trend
+                // Rank + Trend (ALWAYS ON IF HISTORY EXISTS)
                 let rankContent = currentRankVal;
                 let rankClass = "sticky-col col-rank fw-bold";
-                if (isGameLive) {
-                    if(prevRanks[playerName]) {
-                        let diff = prevRanks[playerName] - currentRankVal; 
-                        if(diff > 0) rankContent += ` <span class="text-success small" style="font-size:0.7em"><i class="fas fa-arrow-up"></i>${diff}</span>`;
-                        if(diff < 0) rankContent += ` <span class="text-danger small" style="font-size:0.7em"><i class="fas fa-arrow-down"></i>${Math.abs(diff)}</span>`;
-                    }
-
-                    if (rank === 0) { 
-                        rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
-                        if(isSpotlight) spotlightRank = 1;
-                    } 
-                    else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
+                
+                if(prevRanks[playerName]) {
+                    let diff = prevRanks[playerName] - currentRankVal; 
+                    if(diff > 0) rankContent += ` <span class="text-success small" style="font-size:0.7em"><i class="fas fa-arrow-up"></i>${diff}</span>`;
+                    if(diff < 0) rankContent += ` <span class="text-danger small" style="font-size:0.7em"><i class="fas fa-arrow-down"></i>${Math.abs(diff)}</span>`;
                 }
+                
+                if (rank === 0) { 
+                    rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
+                } 
+                else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
+                
                 html += `<td class="${rankClass}">${rankContent}</td>`;
 
                 // Name & Streaks
                 let hotStreak = 0; let coldStreak = 0;
                 if(row.length > 3) {
                     for (let i = row.length - 2; i >= 3; i--) { 
-                        const playerAnswer = row[i]; const correctAnswer = keyRow[i];
+                        const playerAnswer = row[i]; const correctAnswer = globalKeyRow[i];
                         if (correctAnswer && correctAnswer !== "") { if (playerAnswer === correctAnswer) hotStreak++; else break; }
                     }
                     if (hotStreak === 0) {
                         for (let i = row.length - 2; i >= 3; i--) {
-                            const playerAnswer = row[i]; const correctAnswer = keyRow[i];
+                            const playerAnswer = row[i]; const correctAnswer = globalKeyRow[i];
                             if (correctAnswer && correctAnswer !== "") { if (playerAnswer !== correctAnswer) coldStreak++; else break; }
                         }
                     }
                 }
                 let displayName = playerName;
-                if (hotStreak >= 3) displayName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
-                else if (coldStreak >= 3) displayName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
+                if (hotStreak >= CONFIG.thresholds.streak) displayName += ` <span class="badge bg-danger ms-1">🔥 ${hotStreak}</span>`;
+                else if (coldStreak >= CONFIG.thresholds.streak) displayName += ` <span class="badge bg-info text-dark ms-1">🧊 ${coldStreak}</span>`;
                 html += `<td class="sticky-col col-name">${displayName}</td>`;
                 html += `<td class="sticky-col col-score">${row[1]}</td>`;
 
@@ -464,11 +548,11 @@
                     if (index < 3) return; 
                     let cssClass = "";
                     let content = "";
-                    if (!SHOW_PLAYER_PICKS) {
+                    if (!CONFIG.showPicks) {
                          if(cell && cell.trim() !== "") { content = '<i class="fas fa-lock text-secondary opacity-25"></i>'; } else { content = "-"; }
                     } else {
                         content = cell ? cell : "";
-                        const correctAns = keyRow[index];
+                        const correctAns = globalKeyRow[index];
                         if (correctAns && correctAns.trim() !== "") {
                             if (content === correctAns) { cssClass += " correct-cell"; content += ` <i class="fas fa-check small text-success"></i>`; } 
                             else { cssClass += " incorrect-cell"; }
@@ -482,23 +566,110 @@
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
 
-            // Save new ranks for next refresh
-            if(isGameLive) {
-                localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
-            }
-
-            // CONFETTI
-            if(spotlightRank === 1 && isGameLive) {
+            // Save ranks every time we render successfully
+            localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
+            
+            if(currentSortedPlayers[0] && currentSortedPlayers[0][1] > 0 && isGameLive) {
                 if(!sessionStorage.getItem("confettiFired")) {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    confetti({ particleCount: CONFIG.confettiCount, spread: 70, origin: { y: 0.6 } });
                     sessionStorage.setItem("confettiFired", "true");
                 }
-            } else {
-                sessionStorage.removeItem("confettiFired");
-            }
+            } else { sessionStorage.removeItem("confettiFired"); }
         }
 
-        // Search Persistence
+        // --- SHOW GOLDEN TICKET ---
+        function showTicket(playerIndex) {
+            const player = currentSortedPlayers[playerIndex];
+            if(!player) return;
+
+            const currentScore = parseFloat(player[1] || 0);
+            document.getElementById("ticketName").innerText = player[0];
+            document.getElementById("ticketRank").innerText = "Rank #" + (playerIndex + 1);
+            
+            // The Gap
+            const leaderScore = parseFloat(currentSortedPlayers[0][1] || 0);
+            const gap = currentScore - leaderScore;
+            const gapEl = document.getElementById("ticketGap");
+            
+            gapEl.innerText = gap; 
+            gapEl.style.display = (playerIndex === 0) ? "none" : "block"; // Hide if leader
+
+            // Max Potential (UPDATED TO USE WEIGHTS)
+            let remainingPoints = 0;
+            for(let i=3; i<globalKeyRow.length; i++) {
+                // If header exists but key is empty, it's ungraded
+                if(globalHeaders[i] && (!globalKeyRow[i] || globalKeyRow[i].trim() === "")) {
+                    // Try to get weight from Row 3. If missing/invalid, assume 1 point.
+                    let w = parseFloat(globalWeights[i]);
+                    if(isNaN(w)) w = 1;
+                    remainingPoints += w;
+                }
+            }
+            const maxPotential = currentScore + remainingPoints;
+            document.getElementById("ticketCurrent").innerText = currentScore;
+            document.getElementById("ticketMax").innerText = maxPotential;
+
+            const statusEl = document.getElementById("ticketStatus");
+            const answeredCount = (globalHeaders.length - 3) - remainingPoints; 
+            
+            if (leaderScore > 0) {
+                if (maxPotential < leaderScore) {
+                    statusEl.innerHTML = "<i class='fas fa-times-circle'></i> MATHEMATICALLY ELIMINATED";
+                    statusEl.className = "status-badge bg-secondary text-white opacity-75";
+                } else {
+                    if(playerIndex === 0) {
+                        statusEl.innerHTML = "<i class='fas fa-crown'></i> CURRENT LEADER";
+                        statusEl.className = "status-badge bg-warning text-dark";
+                    } else {
+                        statusEl.innerHTML = "<i class='fas fa-check-circle'></i> IN THE HUNT";
+                        statusEl.className = "status-badge bg-success text-white";
+                    }
+                }
+            } else {
+                statusEl.innerHTML = "PRE-GAME / EARLY";
+                statusEl.className = "status-badge bg-light text-dark border";
+            }
+
+            let html = "";
+            for(let i=3; i<globalHeaders.length; i++) {
+                let question = globalHeaders[i] || "Question " + (i-2);
+                let pick = player[i] || "-";
+                let correct = globalKeyRow[i];
+                let isGraded = (correct && correct.trim() !== "");
+                let weight = globalWeights[i] || "1"; // Show weight if useful
+                
+                let icon = '<i class="fas fa-minus text-muted"></i>'; 
+                let rowClass = "";
+                
+                if(CONFIG.showPicks) {
+                    if(isGraded) {
+                        if(pick === correct) {
+                            icon = '<i class="fas fa-check text-success"></i>';
+                            rowClass = "bg-success bg-opacity-10";
+                        } else {
+                            icon = '<i class="fas fa-times text-danger"></i>';
+                            rowClass = "bg-danger bg-opacity-10";
+                        }
+                    } else if (pick && pick !== "") {
+                        icon = '<i class="far fa-circle text-secondary"></i>'; 
+                    }
+                } else {
+                    pick = "Locked";
+                    icon = '<i class="fas fa-lock text-muted"></i>';
+                }
+
+                html += `<div class="ticket-row ${rowClass}">
+                    <div class="small fw-bold text-wrap" style="width:50%">${question} <span class="text-muted fw-normal" style="font-size:0.75em">(${weight} pts)</span></div>
+                    <div class="text-end" style="width:30%; font-size:0.9em">${pick}</div>
+                    <div class="ticket-icon">${icon}</div>
+                </div>`;
+            }
+            document.getElementById("ticketList").innerHTML = html;
+            
+            var myModal = new bootstrap.Modal(document.getElementById('ticketModal'));
+            myModal.show();
+        }
+
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
@@ -512,12 +683,21 @@
             }
         }
 
-        function toggleHighlight(row) {
-            if (row.classList.contains("table-warning")) { row.classList.remove("table-warning"); } 
-            else { document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning")); row.classList.add("table-warning"); }
-        }
-
-        window.onload = loadData;
+        // ==========================================
+        // 🧪 THE LABORATORY (MOCK DATA)
+        // Edit this text below to simulate game scenarios
+        // ==========================================
+        const MOCK_CSV = `
+PLAYER RANK,SCORE,PAID,Coin Toss,Natl Anthem,First Play,First TD Scorer,Team to Score First,Gatorade Color,MVP
+ANSWER KEY,MAX POINTS,-,Heads,Over,Run,McCaffrey,49ers,Red,Mahomes
+WEIGHTS (PTS),-,-,1,1,1,5,1,3,10
+DETAILS,0,-,5:05pm,,,No Fumbles yet,Red is popular,
+Steve (Admin),5,Y,Heads,Over,Run,Kelce,Chiefs,Blue,Mahomes
+Mike (The Rival),4,N,Heads,Under,Run,McCaffrey,49ers,Red,Purdy
+Sarah (Winner),5,Y,Heads,Over,Pass,McCaffrey,Chiefs,Orange,Mahomes
+Dave (Loser),0,Y,Tails,Under,Pass,Pacheco,Chiefs,Clear,Kelce
+Mom,2,Y,Heads,Over,Run,Kelce,49ers,Purple,Mahomes
+`;
     </script>
 </body>
 </html>
