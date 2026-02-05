@@ -309,36 +309,56 @@
             
             const isGameLive = answeredQuestions > 0;
 
-            // --- CROWD STATS LOGIC ---
-            let crowdStats = [];
+            // --- SMART STATS LOGIC (THE FIX) ---
+            // Calculate Crowd Stats AND Correct Stats simultaneously
+            let columnStats = [];
             headers.forEach((h, colIndex) => {
-                if(colIndex < 3) { crowdStats.push(null); return; }
+                if(colIndex < 3) { columnStats.push(null); return; }
                 
-                let counts = {};
-                let totalVotes = 0;
-                players.forEach(player => {
-                    let ans = player[colIndex];
-                    if(ans && ans.trim() !== "") {
-                        counts[ans] = (counts[ans] || 0) + 1;
-                        totalVotes++;
-                    }
-                });
+                const correctAns = keyRow[colIndex];
+                const isGraded = (correctAns && correctAns.trim() !== "");
 
-                let topPick = "";
-                let topCount = 0;
-                for(const [ans, count] of Object.entries(counts)) {
-                    if(count > topCount) { topCount = count; topPick = ans; }
-                }
-
-                if(totalVotes > 0) {
-                    let pct = Math.round((topCount / totalVotes) * 100);
-                    if(pct >= 60) {
-                        crowdStats.push(`${pct}% picked <b>${topPick}</b>`);
-                    } else {
-                        crowdStats.push(null);
-                    }
+                if (isGraded) {
+                    // --- MODE A: LIVE GAME (% CORRECT) ---
+                    let correctCount = 0; let totalCount = 0;
+                    players.forEach(player => {
+                        if(player[0]) {
+                            totalCount++;
+                            if(player[colIndex] === correctAns) correctCount++;
+                        }
+                    });
+                    let percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                    let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
+                    columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct</span>`);
                 } else {
-                    crowdStats.push(null);
+                    // --- MODE B: PRE-GAME (CROWD CONSENSUS) ---
+                    let counts = {};
+                    let totalVotes = 0;
+                    players.forEach(player => {
+                        let ans = player[colIndex];
+                        if(ans && ans.trim() !== "") {
+                            counts[ans] = (counts[ans] || 0) + 1;
+                            totalVotes++;
+                        }
+                    });
+
+                    let topPick = "";
+                    let topCount = 0;
+                    for(const [ans, count] of Object.entries(counts)) {
+                        if(count > topCount) { topCount = count; topPick = ans; }
+                    }
+
+                    if(totalVotes > 0) {
+                        let pct = Math.round((topCount / totalVotes) * 100);
+                        // LOWERED THRESHOLD TO 51% SO YOU SEE IT IN TESTING
+                        if(pct >= 51) {
+                            columnStats.push(`<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${pct}% picked <b>${topPick}</b></div>`);
+                        } else {
+                            columnStats.push(null);
+                        }
+                    } else {
+                        columnStats.push(null);
+                    }
                 }
             });
 
@@ -355,9 +375,9 @@
                 
                 if(index === 2) formattedHeader = '<i class="fas fa-sack-dollar text-warning"></i>';
 
-                // APPEND CROWD STATS TO HEADER
-                if(crowdStats[index]) {
-                    formattedHeader += `<div class="mt-1 badge bg-dark bg-opacity-50 fw-normal" style="font-size:0.65em; display:block; white-space:normal;">${crowdStats[index]}</div>`;
+                // APPEND SMART STATS
+                if(columnStats[index]) {
+                    formattedHeader += `<br>${columnStats[index]}`;
                 }
 
                 html += `<th class="${stickyClass}">${formattedHeader}</th>`;
