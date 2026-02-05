@@ -23,8 +23,8 @@
             chatUrl: "https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk",
 
             // 4. GAME STATE
-            // false = Pre-Game (Picks Hidden in Matrix/Ticket)
-            // true  = Game Time (Picks Visible in Matrix/Ticket)
+            // false = Pre-Game (Picks Hidden in Ticket)
+            // true  = Game Time (Picks Visible in Ticket)
             showPicks: true,
 
             // 5. ECONOMY
@@ -171,6 +171,11 @@
             .badge { font-size: 0.6em !important; white-space: normal; } 
             #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
             .payout-board { gap: 8px; padding: 5px; } .payout-item:not(:last-child):after { right: -4px; } .payout-label { font-size: 0.6em; } .payout-val { font-size: 0.85em; }
+        }
+        
+        /* DESKTOP TWEAK: WIDER TICKET */
+        @media (min-width: 576px) {
+            #ticketModal .modal-dialog { max-width: 600px; } 
         }
 
         /* LANDSCAPE TWEAKS */
@@ -589,7 +594,7 @@
             } else { sessionStorage.removeItem("confettiFired"); }
         }
 
-// --- SHOW GOLDEN TICKET ---
+        // --- SHOW GOLDEN TICKET ---
         function showTicket(playerIndex) {
             const player = currentSortedPlayers[playerIndex];
             if(!player) return;
@@ -623,7 +628,9 @@
             document.getElementById("ticketMax").innerText = maxPotential;
 
             const statusEl = document.getElementById("ticketStatus");
+            const answeredCount = (globalHeaders.length - 3) - remainingPoints; 
             
+            // Status Logic
             if (leaderScore > 0) {
                 if (maxPotential < leaderScore) {
                     statusEl.innerHTML = "<i class='fas fa-times-circle'></i> MATHEMATICALLY ELIMINATED";
@@ -648,6 +655,7 @@
                 let pick = player[i] || "-";
                 let correct = globalKeyRow[i];
                 let isGraded = (correct && correct.trim() !== "");
+                let weight = globalWeights[i] || "1"; 
                 
                 let isTieBreaker = (globalHeaders[i] && globalHeaders[i].toLowerCase().includes("tie"));
 
@@ -675,11 +683,9 @@
                     icon = '<i class="fas fa-lock text-muted"></i>';
                 }
 
-                // REMOVED: The extra weightLabel logic. 
-                // We now just display the question text from the CSV.
-
+                // REMOVED THE REDUNDANT (X PTS) LABEL HERE
                 html += `<div class="ticket-row ${rowClass}">
-                    <div class="small fw-bold text-wrap" style="width:50%">${question}</div>
+                    <div class="small fw-bold text-wrap" style="width:60%">${question}</div>
                     <div class="text-end" style="width:30%; font-size:0.9em">${pick}</div>
                     <div class="ticket-icon">${icon}</div>
                 </div>`;
