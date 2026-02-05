@@ -20,6 +20,10 @@
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
+        /* COMMISH SIGNAL (ANNOUNCEMENT BAR) */
+        #commishSignal { display: none; background-color: #ffc107; color: #000; font-weight: bold; font-size: 0.85rem; padding: 8px; text-align: center; border-bottom: 1px solid #e0a800; animation: flash 2s infinite; }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
         /* PAYOUT DASHBOARD */
         .payout-board { display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px; font-size: 0.85rem; }
         .payout-item { display: flex; flex-direction: column; line-height: 1.1; position: relative; }
@@ -39,12 +43,12 @@
         /* BORDERS */
         td, th { border-right: 1px solid #dee2e6; } td:last-child, th:last-child { border-right: none; }
         
-        /* STICKY COLUMNS LOGIC */
+        /* STICKY LOGIC */
         thead { position: sticky; top: 0; z-index: 50; } 
         .sticky-col { position: sticky; z-index: 20; } 
         thead .sticky-col { z-index: 60 !important; } 
 
-        /* DEFAULT COLUMN WIDTHS & COLORS */
+        /* COLUMN WIDTHS */
         .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; } 
         .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; } 
         .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
@@ -60,28 +64,23 @@
         /* HEADER STYLING */
         thead tr:first-child th { background-color: #212529; color: white; vertical-align: bottom; text-align: center; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444; }
         .key-row td { background-color: #212529 !important; color: #ffc107 !important; font-weight: bold; border-bottom: 4px solid #ffd700; text-align: center; vertical-align: top; padding-bottom: 8px; }
-        /* Sticky Headers need dark background */
         thead tr:first-child .sticky-col { background-color: #212529; color: white; } 
         thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
         tbody td { text-align: center; vertical-align: middle; padding: 8px; } 
         .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- ZEBRA STRIPING FIX (MUST BE AT BOTTOM) --- */
-        /* Force Grey Background on Even Rows */
+        /* --- ZEBRA STRIPING --- */
         tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
-        
-        /* Force Sticky Columns on Even Rows to also be Grey (Overrides default white) */
         tbody tr:nth-of-type(even) .col-rank,
         tbody tr:nth-of-type(even) .col-name,
-        tbody tr:nth-of-type(even) .col-score {
-            background-color: #f2f4f6 !important;
-        }
+        tbody tr:nth-of-type(even) .col-score { background-color: #f2f4f6 !important; }
 
-        /* --- SPOTLIGHT STYLE (The "Me" Row) --- */
-        /* Must override Zebra Striping */
-        .table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
-        .table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
+        /* --- SPOTLIGHT STYLE (NUCLEAR FIX) --- */
+        /* We use tr.player-row.table-warning to make the specificity HIGHER than the zebra stripe rule */
+        tr.player-row.table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
+        /* Force sticky columns to match the highlight */
+        tr.player-row.table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
 
         /* MOBILE TWEAKS */
         @media (max-width: 768px) {
@@ -101,6 +100,8 @@
     </style>
 </head>
 <body class="d-flex flex-column">
+
+    <div id="commishSignal"></div>
 
     <div class="header-container">
         <h2 class="m-0"><span class="live-indicator"></span> 11th Annual Prop Bet Challenge</h2>
@@ -162,6 +163,8 @@
                   <li class="mb-1"><span class="badge bg-info text-dark" style="width:20px;">🧊</span> 3+ Wrong Streak</li>
                   <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard! (<20% correct)</li>
                   <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (>90% correct)</li>
+                  <li class="mb-1"><small class="text-success"><i class="fas fa-arrow-up"></i></small> Rank moved up</li>
+                  <li class="mb-1"><small class="text-danger"><i class="fas fa-arrow-down"></i></small> Rank moved down</li>
               </ul>
               
               <div class="alert alert-secondary mt-3 mb-0 p-2"><p class="small fw-bold m-0"><i class="fas fa-mobile-alt"></i> Pro Tip:</p><p class="small m-0">Tap your row to "Spotlight" it. It stays highlighted even if you refresh!</p></div>
@@ -176,7 +179,7 @@
             <div class="modal-content shadow-lg" style="height: 80vh;">
                 <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body p-0 bg-light">
-                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
+                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
                 </div>
             </div>
         </div>
@@ -263,6 +266,18 @@
             const detailRow = data[2]; 
             const players = data.slice(3); 
             
+            // --- COMMISH SIGNAL ---
+            // Data[2][0] is the first cell of the Details row (where we put Answer_Key!A5)
+            // If it's not "DETAILS" and not empty, show it.
+            const commishMsg = detailRow[0];
+            const signalBar = document.getElementById("commishSignal");
+            if(commishMsg && commishMsg !== "DETAILS" && commishMsg.trim() !== "") {
+                signalBar.innerText = commishMsg;
+                signalBar.style.display = "block";
+            } else {
+                signalBar.style.display = "none";
+            }
+            
             const spotlightName = localStorage.getItem("propBetSpotlight");
             let spotlightRank = -1; 
 
@@ -296,6 +311,11 @@
                 }
                 return 0;
             });
+
+            // --- TREND LOGIC ---
+            // Retrieve previous ranks
+            let prevRanks = JSON.parse(localStorage.getItem("propBetRanks") || "{}");
+            let currentRanks = {};
 
             // --- SMART STATS ---
             let columnStats = [];
@@ -351,10 +371,12 @@
             html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-name"; 
+                if(index === 0) stickyClass = "sticky-col col-name";
                 if(index === 1) stickyClass = "sticky-col col-score";
+                
                 let cellContent = cell ? cell : "-";
-                if (cell && detailRow[index] && detailRow[index].trim() !== "") {
+                // Detail Notes
+                if (cell && detailRow[index] && detailRow[index].trim() !== "" && index > 2) {
                     cellContent += `<div class="small text-info mt-1" style="font-size:0.75em; line-height:1;">${detailRow[index]}</div>`;
                 }
                 html += `<td class="${stickyClass}">${cellContent}</td>`;
@@ -367,13 +389,24 @@
                 
                 let playerName = row[0];
                 let isSpotlight = (playerName === spotlightName);
+                let currentRankVal = rank + 1;
                 
+                // Store Rank
+                currentRanks[playerName] = currentRankVal;
+
                 html += `<tr onclick="setSpotlight('${playerName.replace(/'/g, "\\'")}')" class="player-row ${isSpotlight ? 'table-warning' : ''}" style="cursor:pointer;">`;
                 
-                // Rank
-                let rankContent = rank + 1;
+                // Rank + Trend
+                let rankContent = currentRankVal;
                 let rankClass = "sticky-col col-rank fw-bold";
                 if (isGameLive) {
+                    // Calculate Trend
+                    if(prevRanks[playerName]) {
+                        let diff = prevRanks[playerName] - currentRankVal; // Positive = Moved UP (rank got smaller)
+                        if(diff > 0) rankContent += ` <span class="text-success small" style="font-size:0.7em"><i class="fas fa-arrow-up"></i>${diff}</span>`;
+                        if(diff < 0) rankContent += ` <span class="text-danger small" style="font-size:0.7em"><i class="fas fa-arrow-down"></i>${Math.abs(diff)}</span>`;
+                    }
+
                     if (rank === 0) { 
                         rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
                         if(isSpotlight) spotlightRank = 1;
@@ -430,6 +463,11 @@
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
 
+            // Save new ranks for next refresh
+            if(isGameLive) {
+                localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
+            }
+
             // CONFETTI
             if(spotlightRank === 1 && isGameLive) {
                 if(!sessionStorage.getItem("confettiFired")) {
@@ -441,6 +479,7 @@
             }
         }
 
+        // Search Persistence
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
