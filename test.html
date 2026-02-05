@@ -13,10 +13,10 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        /* Prevent bounce scroll on mobile */
+        /* BASE STYLES */
         html, body { height: 100%; overflow: hidden; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* --- HEADER --- */
+        /* HEADER */
         .header-container { background: linear-gradient(90deg, #C60C30 0%, #002244 40%, #002244 60%, #69BE28 100%); color: white; padding: 10px 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; z-index: 100; position: relative; flex-shrink: 0; }
         .header-container h2 { font-size: 1.3rem; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
@@ -31,48 +31,68 @@
         .live-indicator { display: inline-block; width: 10px; height: 10px; background-color: #ff3b3b; border-radius: 50%; box-shadow: 0 0 0 rgba(255, 59, 59, 0.7); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-        /* --- SCROLLABLE WINDOW --- */
+        /* SCROLLABLE TABLE AREA */
         .main-content { flex-grow: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         .table-container { overflow: auto; background: white; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); height: 100%; }
         table { white-space: nowrap; font-size: 0.9rem; border-collapse: separate; border-spacing: 0; }
         
-        /* --- BORDERS & STRIPING --- */
+        /* BORDERS */
         td, th { border-right: 1px solid #dee2e6; } td:last-child, th:last-child { border-right: none; }
-        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; } tbody tr:nth-of-type(even) .sticky-col { background-color: #f2f4f6 !important; }
         
-        /* --- STICKY LOGIC --- */
-        thead { position: sticky; top: 0; z-index: 50; } .sticky-col { position: sticky; z-index: 20; } thead .sticky-col { z-index: 60 !important; } 
+        /* STICKY COLUMNS LOGIC */
+        thead { position: sticky; top: 0; z-index: 50; } 
+        .sticky-col { position: sticky; z-index: 20; } 
+        thead .sticky-col { z-index: 60 !important; } 
 
-        /* --- COLUMN WIDTHS --- */
+        /* DEFAULT COLUMN WIDTHS & COLORS */
         .col-rank { left: 0; min-width: 40px; text-align: center; background-color: #f8f9fa; } 
         .col-name { left: 40px; min-width: 150px; text-align: left !important; padding-left: 10px; background-color: #fff; } 
         .col-score { left: 190px; min-width: 60px; font-weight: bold; text-align: center; background-color: #fff; }
 
-        /* --- STYLES --- */
-        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
+        /* STATUS COLORS */
+        .correct-cell { background-color: #d1e7dd !important; color: #0f5132; } 
+        .incorrect-cell { background-color: #f8d7da !important; color: #842029; }
         
-        /* SPOTLIGHT STYLE (The "Me" Row) */
-        .table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
-        .table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
-        
+        /* RANKING HIGHLIGHTS */
         .rank-1-cell { background-color: #FFD700 !important; color: #000 !important; border-right: 1px solid #c6a300; } 
         .rank-last-cell { background-color: #e3f2fd !important; color: #0d6efd !important; border-right: 1px solid #dee2e6; }
 
         /* HEADER STYLING */
         thead tr:first-child th { background-color: #212529; color: white; vertical-align: bottom; text-align: center; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #444; }
         .key-row td { background-color: #212529 !important; color: #ffc107 !important; font-weight: bold; border-bottom: 4px solid #ffd700; text-align: center; vertical-align: top; padding-bottom: 8px; }
-        thead tr:first-child .sticky-col { background-color: #212529; color: white; } thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
+        /* Sticky Headers need dark background */
+        thead tr:first-child .sticky-col { background-color: #212529; color: white; } 
+        thead .key-row .sticky-col { background-color: #212529 !important; color: #ffc107 !important; }
 
-        tbody td { text-align: center; vertical-align: middle; padding: 8px; } .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
+        tbody td { text-align: center; vertical-align: middle; padding: 8px; } 
+        .loading-msg { padding: 40px; text-align: center; font-style: italic; color: #666; }
 
-        /* --- MOBILE OPTIMIZATION --- */
+        /* --- ZEBRA STRIPING FIX (MUST BE AT BOTTOM) --- */
+        /* Force Grey Background on Even Rows */
+        tbody tr:nth-of-type(even) td { background-color: #f2f4f6; }
+        
+        /* Force Sticky Columns on Even Rows to also be Grey (Overrides default white) */
+        tbody tr:nth-of-type(even) .col-rank,
+        tbody tr:nth-of-type(even) .col-name,
+        tbody tr:nth-of-type(even) .col-score {
+            background-color: #f2f4f6 !important;
+        }
+
+        /* --- SPOTLIGHT STYLE (The "Me" Row) --- */
+        /* Must override Zebra Striping */
+        .table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
+        .table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
+
+        /* MOBILE TWEAKS */
         @media (max-width: 768px) {
-            table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } 
-            .badge { font-size: 0.6em !important; white-space: normal; } #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
+            table { font-size: 0.8rem; } .header-container h2 { font-size: 1.1rem; } 
+            .col-rank { min-width: 30px; } .col-name { left: 30px; min-width: 110px; padding-left: 5px; } .col-score { left: 140px; min-width: 50px; } 
+            .badge { font-size: 0.6em !important; white-space: normal; } 
+            #searchInput::placeholder { color: transparent; } #searchInput { width: 100px !important; }
             .payout-board { gap: 8px; padding: 5px; } .payout-item:not(:last-child):after { right: -4px; } .payout-label { font-size: 0.6em; } .payout-val { font-size: 0.85em; }
         }
 
-        /* --- LANDSCAPE --- */
+        /* LANDSCAPE TWEAKS */
         @media (max-height: 500px) and (orientation: landscape) {
             .header-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 5px 15px; }
             .progress-container, #lastUpdated, .rules-link, .payout-board { display: none !important; } 
@@ -156,7 +176,7 @@
             <div class="modal-content shadow-lg" style="height: 80vh;">
                 <div class="modal-header bg-primary text-white"><h5 class="modal-title fs-6"><i class="fas fa-comments"></i> Challenge Chat</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body p-0 bg-light">
-                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
+                    <iframe src="https://www3.cbox.ws/box/?boxid=3551924&boxtag=bMsoTk" width="100%" height="100%" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>	
                 </div>
             </div>
         </div>
@@ -181,7 +201,7 @@
         const BUY_IN = 10; 
         
         // *** THE MAGIC SWITCH ***
-        const SHOW_PLAYER_PICKS = true; 
+        const SHOW_PLAYER_PICKS = false; 
 
         // --- 2. SETUP ---
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -215,7 +235,7 @@
                 download: true, header: false,
                 complete: function(results) { 
                     try { 
-                        window.currentData = results.data; // Store for re-rendering
+                        window.currentData = results.data; 
                         renderTable(results.data); 
                         const now = new Date(); 
                         document.getElementById("lastUpdated").innerText = "Last Updated: " + now.toLocaleTimeString();
@@ -244,7 +264,7 @@
             const players = data.slice(3); 
             
             const spotlightName = localStorage.getItem("propBetSpotlight");
-            let spotlightRank = -1; // Track rank for confetti
+            let spotlightRank = -1; 
 
             // --- PAYOUTS ---
             let prizeCount = 0;
@@ -331,7 +351,7 @@
             html += `<tr class="key-row"><td class="sticky-col col-rank">-</td>`; 
             keyRow.forEach((cell, index) => {
                 let stickyClass = "";
-                if(index === 0) stickyClass = "sticky-col col-name";
+                if(index === 0) stickyClass = "sticky-col col-name"; 
                 if(index === 1) stickyClass = "sticky-col col-score";
                 let cellContent = cell ? cell : "-";
                 if (cell && detailRow[index] && detailRow[index].trim() !== "") {
@@ -348,7 +368,6 @@
                 let playerName = row[0];
                 let isSpotlight = (playerName === spotlightName);
                 
-                // Click triggers setSpotlight instead of simple highlight
                 html += `<tr onclick="setSpotlight('${playerName.replace(/'/g, "\\'")}')" class="player-row ${isSpotlight ? 'table-warning' : ''}" style="cursor:pointer;">`;
                 
                 // Rank
@@ -357,7 +376,6 @@
                 if (isGameLive) {
                     if (rank === 0) { 
                         rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
-                        // CONFETTI CHECK: If this is the spotlight user AND they are Rank 1
                         if(isSpotlight) spotlightRank = 1;
                     } 
                     else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
@@ -412,21 +430,17 @@
             table.innerHTML = html;
             document.getElementById("loading").style.display = "none";
 
-            // --- CONFETTI LOGIC ---
-            // If the Spotlight user is Rank 1 AND the game is live...
+            // CONFETTI
             if(spotlightRank === 1 && isGameLive) {
-                // Check if we already fired confetti this session to avoid infinite loop
                 if(!sessionStorage.getItem("confettiFired")) {
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                     sessionStorage.setItem("confettiFired", "true");
                 }
             } else {
-                // Reset if they lose rank 1 so it can fire again if they regain it
                 sessionStorage.removeItem("confettiFired");
             }
         }
 
-        // Search Persistence
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toUpperCase();
@@ -438,6 +452,11 @@
                     tr[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
                 }
             }
+        }
+
+        function toggleHighlight(row) {
+            if (row.classList.contains("table-warning")) { row.classList.remove("table-warning"); } 
+            else { document.querySelectorAll(".player-row").forEach(r => r.classList.remove("table-warning")); row.classList.add("table-warning"); }
         }
 
         window.onload = loadData;
