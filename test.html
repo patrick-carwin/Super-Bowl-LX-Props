@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prop Bet Challenge</title> <script>
+    <title>Prop Bet Challenge</title>
+    
+    <script>
         const CONFIG = {
             // 1. APP IDENTITY
             appTitle: "11th Annual Prop Bet Challenge",
@@ -117,10 +119,6 @@
         tbody tr:nth-of-type(even) .col-rank,
         tbody tr:nth-of-type(even) .col-name,
         tbody tr:nth-of-type(even) .col-score { background-color: #f2f4f6 !important; }
-
-        /* --- SPOTLIGHT STYLE --- */
-        tr.player-row.table-warning td { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; } 
-        tr.player-row.table-warning .sticky-col { background-color: #fff3cd !important; border-top: 2px solid #ffc107; border-bottom: 2px solid #ffc107; }
 
         /* --- GOLDEN TICKET MODAL STYLES --- */
         .ticket-modal-content {
@@ -394,9 +392,6 @@
                     localStorage.setItem("lastCommishMsg", commishMsg);
                 } else { signalBar.style.display = "none"; }
             } else { signalBar.style.display = "none"; }
-            
-            const spotlightName = localStorage.getItem("propBetSpotlight");
-            let spotlightRank = -1; 
 
             // --- PAYOUTS ---
             let prizeCount = 0;
@@ -504,11 +499,11 @@
                 if(!row[0]) return; 
                 
                 let playerName = row[0];
-                let isSpotlight = (playerName === spotlightName);
                 let currentRankVal = rank + 1;
                 currentRanks[playerName] = currentRankVal;
 
-                html += `<tr onclick="showTicket(${rank}); setSpotlight('${playerName.replace(/'/g, "\\'")}')" class="player-row ${isSpotlight ? 'table-warning' : ''}" style="cursor:pointer;">`;
+                // CLEAN CLICK HANDLER (NO SPOTLIGHT)
+                html += `<tr onclick="showTicket(${rank})" class="player-row" style="cursor:pointer;">`;
                 
                 // Rank + Trend
                 let rankContent = currentRankVal;
@@ -521,7 +516,6 @@
                     }
                     if (rank === 0) { 
                         rankContent = `<i class="fas fa-crown text-dark"></i>`; rankClass += " rank-1-cell"; 
-                        if(isSpotlight) spotlightRank = 1;
                     } 
                     else if (rank === players.length - 1) { rankContent = `<i class="fas fa-snowflake text-primary"></i>`; rankClass += " rank-last-cell"; }
                 }
@@ -576,12 +570,6 @@
             document.getElementById("loading").style.display = "none";
 
             if(isGameLive) localStorage.setItem("propBetRanks", JSON.stringify(currentRanks));
-            if(spotlightRank === 1 && isGameLive) {
-                if(!sessionStorage.getItem("confettiFired")) {
-                    confetti({ particleCount: CONFIG.confettiCount, spread: 70, origin: { y: 0.6 } });
-                    sessionStorage.setItem("confettiFired", "true");
-                }
-            } else { sessionStorage.removeItem("confettiFired"); }
         }
 
         // --- SHOW GOLDEN TICKET (REALITY CHECK UPGRADE) ---
@@ -682,16 +670,6 @@
             
             var myModal = new bootstrap.Modal(document.getElementById('ticketModal'));
             myModal.show();
-        }
-
-        // --- SPOTLIGHT PERSISTENCE ---
-        function setSpotlight(name) {
-            let current = localStorage.getItem("propBetSpotlight");
-            if (current === name) {
-                localStorage.removeItem("propBetSpotlight"); 
-            } else {
-                localStorage.setItem("propBetSpotlight", name); 
-            }
         }
 
         function filterTable() {
