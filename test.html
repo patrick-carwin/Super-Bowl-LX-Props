@@ -178,7 +178,7 @@
                   <li class="mb-1"><span class="badge bg-danger" style="width:20px;">🔥</span> 3+ Answer Streak</li>
                   <li class="mb-1"><span class="badge bg-info text-dark" style="width:20px;">🧊</span> 3+ Wrong Streak</li>
                   <li class="mb-1"><span class="badge bg-dark" style="width:20px;">💀</span> <strong>Widowmaker:</strong> Hard! (<20% correct)</li>
-                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (>90% correct)</li>
+                  <li class="mb-1"><span class="badge bg-warning text-dark" style="width:20px;">🌟</span> <strong>Gimme:</strong> Easy! (>80% correct)</li>
                   <li class="mb-1"><small class="text-success"><i class="fas fa-arrow-up"></i></small> Rank moved up</li>
                   <li class="mb-1"><small class="text-danger"><i class="fas fa-arrow-down"></i></small> Rank moved down</li>
               </ul>
@@ -354,7 +354,7 @@
                         let badgeColor = percent > 50 ? 'bg-success' : 'bg-secondary';
                         let extraIcon = "";
                         if (percent < 20) { extraIcon = " 💀"; badgeColor = "bg-dark"; } 
-                        if (percent > 90) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; }
+                        if (percent > 80) { extraIcon = " 🌟"; badgeColor = "bg-warning text-dark"; }
                         columnStats.push(`<span class="badge ${badgeColor} mt-1">${percent}% Correct${extraIcon}</span>`);
                     } else {
                         let counts = {}; let totalVotes = 0;
